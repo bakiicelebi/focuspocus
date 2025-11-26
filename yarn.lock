@@ -5545,6 +5545,11 @@ react-native-is-edge-to-edge@^1.1.6:
 react-native-is-edge-to-edge@1.1.7:
   version "1.1.7"
 
+react-native-radial-slider@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.npmjs.org/react-native-radial-slider/-/react-native-radial-slider-1.1.0.tgz"
+  integrity sha512-bxOn0NkMWCE04JsI8UzfYjhtmWn2WRPLWgIVsIpyRsifcEqXwk7JjB9cg8CZOXwZN5Wixv6gon4LEz7lE9IMTA==
+
 react-native-reanimated@~3.17.4:
   version "3.17.5"
   dependencies:

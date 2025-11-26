@@ -14,7 +14,7 @@ import { useEffect, useRef, useState } from "react";
 import { Animated, Settings } from "react-native";
 
 export default function TabLayout() {
-  const [homeButtonActive, setHomeButtonActive] = useState(false);
+  const [homeButtonActive, setHomeButtonActive] = useState(true);
 
   const theme = useTheme();
 
@@ -112,7 +112,7 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="two"
         listeners={{ tabPress: () => handleTabPress(false) }}
         options={{
           tabBarShowLabel: false,
@@ -127,7 +127,7 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
-        name="two"
+        name="index"
         listeners={{ tabPress: () => handleTabPress(true) }}
         options={{
           title: "QR Code",
@@ -173,11 +173,7 @@ export default function TabLayout() {
           tabBarShowLabel: false,
           title: "Stores",
           tabBarIcon: ({ color, focused }) => (
-            <Cog
-              marginTop={15}
-              size={focused ? 45 : 40}
-              color={color as any}
-            />
+            <Cog marginTop={15} size={focused ? 45 : 40} color={color as any} />
           ),
           headerStatusBarHeight: 45,
         }}
