@@ -12,7 +12,8 @@ import { useFonts } from "expo-font";
 import { SplashScreen, Stack } from "expo-router";
 import { Provider } from "components/Provider";
 import { useTheme } from "tamagui";
-import { AppStateContextProvider } from "contexts/StateContext";
+import { AppStateContextProvider } from "contexts/AppStateContext";
+import { TimerContextProvider } from "contexts/TimerContext";
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -54,7 +55,9 @@ export default function RootLayout() {
 const Providers = ({ children }: { children: React.ReactNode }) => {
   return (
     <Provider>
-      <AppStateContextProvider>{children}</AppStateContextProvider>
+      <AppStateContextProvider>
+        <TimerContextProvider>{children}</TimerContextProvider>
+      </AppStateContextProvider>
     </Provider>
   );
 };

@@ -1,99 +1,130 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { YStack } from "tamagui";
-import {
-  CircularTimer,
+import CircularTimer, {
+  CircularTimerRef,
   CircularTimerProps,
 } from "../../components/CircularTimer";
 import CustomDropDown from "components/Menus/CustomDropDown";
+import {
+  TimerContextProvider,
+  useTimerContext,
+  TimerOption,
+} from "../../contexts/TimerContext";
 
-type TimerMode = "work" | "break";
+const timerStyle: Record<"work" | "break", CircularTimerProps> = {
+  work: {
+    startColor: "#072712c0",
+    endColor: "#007a29bd",
+    activeColor: "#38a15bff",
+    inactiveColor: "#ff0000ff",
+    thumbColor: "#114221ff",
+  },
+  break: {
+    startColor: "#212707c0",
+    endColor: "#b5c710bd",
+    activeColor: "#81a138ff",
+    inactiveColor: "#ff0000ff",
+    thumbColor: "#b5c528ff",
+  },
+};
 
-interface TimerOption {
-  key: string;
-  label: string;
-  workTime: number;
-  breakTime: number;
-}
-
-const dropdownItems: TimerOption[] = [
-  { key: "pomodoro", label: "Pomodoro", workTime: 25, breakTime: 5 },
-  { key: "5217", label: "52/17", workTime: 52, breakTime: 17 },
-  { key: "ultradian", label: "Ultradian", workTime: 90, breakTime: 25 },
-  { key: "custom", label: "Custom", workTime: 45, breakTime: 15 },
+const timerOptions: TimerOption[] = [
+  {
+    key: "pomodoro",
+    label: "Pomodoro",
+    workTimeInMinutes: 25,
+    breakTimeInMinutes: 5,
+  },
+  {
+    key: "5217",
+    label: "52/17",
+    workTimeInMinutes: 52,
+    breakTimeInMinutes: 17,
+  },
+  {
+    key: "ultradian",
+    label: "Ultradian",
+    workTimeInMinutes: 90,
+    breakTimeInMinutes: 25,
+  },
+  {
+    key: "custom",
+    label: "Custom",
+    workTimeInMinutes: 45,
+    breakTimeInMinutes: 15,
+  },
 ];
 
-export default function TabOneScreen() {
-  const [mode, setMode] = useState<TimerMode>("work");
-  const [isTimerRunning, setIsTimerRunning] = useState(false);
-  const [selectedMode, setSelectedMode] = useState<TimerOption>(
-    dropdownItems[0]
-  );
+const TimerScreenContent = () => {
+  const {
+    mode,
+    selectedOption,
+    setSelectedOption,
+    isTimerRunning,
+    setIsTimerRunning,
+    timeLeft,
+    maxTime,
+    handleTimerEnd,
+    timerKey,
+    timerRef,
+  } = useTimerContext();
 
-  const timerConfig: Record<TimerMode, CircularTimerProps> = {
-    work: {
-      maxSeconds: (1 / 6) * 60, // 25 Dakika
-      initialSeconds: (1 / 6) * 60, // 12.5 Dakika
-      startColor: "#072712c0",
-      endColor: "#007a29bd",
-      activeColor: "#38a15bff",
-      inactiveColor: "#ff0000ff",
-      thumbColor: "#114221ff",
-    },
-    break: {
-      maxSeconds: (1 / 12) * 60, // 5 Dakika
-      initialSeconds: (1 / 12) * 60, // 2.5 Dakika
-      startColor: "#212707c0",
-      endColor: "#b5c710bd",
-      activeColor: "#81a138ff",
-      inactiveColor: "#ff0000ff",
-      thumbColor: "#b5c528ff",
-    },
-  };
-
-  const handleTimerEnd = () => {
-    console.log(`${mode} bitti!`);
-
-    if (mode === "work") {
-      setMode("break");
-    } else {
-      setMode("work");
+  useEffect(() => {
+    if (!selectedOption) {
+      setSelectedOption(timerOptions[0]);
     }
-  };
+  }, []);
 
-  const currentConfig = timerConfig[mode];
+  const currentConfig = timerStyle[mode];
+  const disabledChangeTimer = selectedOption?.key !== "custom";
+
+  if (!selectedOption) return null;
 
   return (
     <YStack
       flex={1}
-      pt={"$10"}
+      pt={"$5"}
       alignItems="center"
-      gap="$8"
+      gap="$10"
       px="$10"
       bg="$background"
     >
       <CustomDropDown
-        selectedItem={selectedMode}
-        items={dropdownItems}
+        selectedItem={selectedOption}
+        items={timerOptions}
         keyName="key"
         labelName="label"
-        onSelect={(item) => setSelectedMode(item)}
+        onSelect={(item) => setSelectedOption(item)}
         minWidth={250}
         height={40}
-        menuBorderRadius={12}
+        menuBorderRadius={10}
         deselectable={false}
       />
+
       <CircularTimer
-        key={mode}
-        maxSeconds={currentConfig.maxSeconds}
-        initialSeconds={currentConfig.initialSeconds}
+        ref={timerRef}
+        key={timerKey}
+        maxSeconds={maxTime}
+        initialSeconds={timeLeft}
         startColor={currentConfig.startColor}
         endColor={currentConfig.endColor}
         activeColor={currentConfig.activeColor}
         inactiveColor={currentConfig.inactiveColor}
         thumbColor={currentConfig.thumbColor}
         onEnd={handleTimerEnd}
+        // Kullanıcı butona bastığında Context'i haberdar et
         onActiveChange={(isActive) => setIsTimerRunning(isActive)}
+        disabledChange={disabledChangeTimer}
       />
     </YStack>
+  );
+};
+
+// Ana Ekran (Provider ile sarmalıyoruz)
+export default function TabOneScreen() {
+  return (
+    <TimerContextProvider>
+      <TimerScreenContent />
+    </TimerContextProvider>
   );
 }

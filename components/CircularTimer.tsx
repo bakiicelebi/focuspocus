@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 import { Animated, Easing } from "react-native";
 import { YStack, ZStack, Text, ViewProps } from "tamagui";
 import { RadialSlider } from "react-native-radial-slider";
@@ -23,27 +29,35 @@ export interface CircularTimerProps {
   onEnd?: () => void;
   onActiveChange?: (isActive: boolean) => void;
   disabledChange?: boolean;
-  disableTouchOnActive?: boolean;
 }
 
-export function CircularTimer({
-  size = 260,
-  thickness = 10,
-  maxSeconds = 30 * 60,
-  initialSeconds,
-  startColor = "#072712c0",
-  endColor = "#007a29bd",
-  activeColor = "#38a15bff",
-  inactiveColor = "#ff0000ff",
-  thumbColor = "#114221ff",
-  thumbBorderColor,
-  backgroundColor = "$background",
-  onEnd,
-  onActiveChange,
-  disabledChange = false,
-  disableTouchOnActive = false,
-}: CircularTimerProps) {
-  const safeMaxSeconds = Math.floor(maxSeconds);
+export interface CircularTimerRef {
+  toggle: (trigger?: boolean) => void;
+  // start: () => void;
+  // stop: () => void;
+  // reset: (sec?: number) => void;
+}
+
+const CircularTimer = (
+  {
+    size = 260,
+    thickness = 10,
+    maxSeconds = 30 * 60,
+    initialSeconds,
+    startColor = "#072712c0",
+    endColor = "#007a29bd",
+    activeColor = "#38a15bff",
+    inactiveColor = "#ff0000ff",
+    thumbColor = "#114221ff",
+    thumbBorderColor,
+    backgroundColor = "$background",
+    onEnd,
+    onActiveChange,
+    disabledChange,
+  }: CircularTimerProps,
+  ref: React.Ref<CircularTimerRef>
+) => {
+  const safeMaxSeconds = Math.max(1, Math.floor(maxSeconds));
 
   const calculateInitialValue = () => {
     if (initialSeconds !== undefined) {
@@ -57,10 +71,14 @@ export function CircularTimer({
 
   const breathAnim = useRef(new Animated.Value(0)).current;
 
-  // Slider değişimi
   const handleChangeSpeed = (val: number) => {
     if (!isActive) {
-      setTotalSeconds(Math.floor(val));
+      let currentVal = val;
+      if (currentVal < 0) currentVal = 0;
+      if (currentVal > safeMaxSeconds) currentVal = safeMaxSeconds;
+      if (disabledChange) currentVal = totalSeconds;
+
+      setTotalSeconds(Math.floor(currentVal));
     }
   };
 
@@ -70,14 +88,12 @@ export function CircularTimer({
     totalSeconds / safeMaxSeconds
   );
 
-  // isActive değiştiğinde parent'a bildir
   useEffect(() => {
     if (onActiveChange) {
       onActiveChange(isActive);
     }
   }, [isActive, onActiveChange]);
 
-  // Timer Mantığı
   useEffect(() => {
     let interval: ReturnType<typeof setInterval> | null = null;
 
@@ -95,7 +111,6 @@ export function CircularTimer({
     };
   }, [isActive, totalSeconds, onEnd]);
 
-  // Animasyon
   useEffect(() => {
     if (isActive) {
       Animated.loop(
@@ -122,13 +137,20 @@ export function CircularTimer({
     }
   }, [isActive]);
 
+  useImperativeHandle(ref, () => ({
+    toggle: (trigger?: boolean) => toggleTimer(trigger),
+  }));
+
   const animatedOpacity = breathAnim.interpolate({
     inputRange: [0, 1],
     outputRange: [0.4, 1],
   });
 
-  const toggleTimer = () => {
-    if (totalSeconds > 0) {
+  const toggleTimer = (trigger?: boolean) => {
+    console.log("toggleTimer çağrıldı. isActive:", isActive);
+    if (trigger !== undefined) {
+      setIsActive(trigger);
+    } else if (totalSeconds > 0) {
       setIsActive(!isActive);
     }
   };
@@ -158,7 +180,7 @@ export function CircularTimer({
           borderRadius={200}
           alignItems="center"
           justifyContent="space-evenly"
-          onPress={toggleTimer}
+          onPress={() => toggleTimer()}
         >
           <Text
             fontSize={size * 0.12}
@@ -201,7 +223,7 @@ export function CircularTimer({
         style={{
           alignSelf: "center",
           position: "absolute",
-          pointerEvents: isActive ? "none" : "auto",
+          pointerEvents: isActive || disabledChange ? "none" : "auto",
         }}
         linearGradient={[
           { offset: "0%", color: startColor },
@@ -210,4 +232,6 @@ export function CircularTimer({
       />
     </ZStack>
   );
-}
+};
+
+export default forwardRef(CircularTimer);
