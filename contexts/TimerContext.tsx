@@ -9,6 +9,8 @@ import React, {
 import { useAppStateContext } from "./AppStateContext";
 import { getData, saveData, removeData } from "utils/AsyncStorageUtils";
 import { CircularTimerRef } from "components/CircularTimer";
+import type { IconProps } from "@tamagui/helpers-icon";
+import { Heart, Plus } from "@tamagui/lucide-icons";
 
 export type TimerMode = "work" | "break";
 export type BackgroundBehavior = "PAUSE" | "CONTINUE";
@@ -18,71 +20,147 @@ export interface TimerOption {
   label: string;
   workTimeInMinutes: number;
   breakTimeInMinutes: number;
+  icon?: IconComponentType;
 }
+
+export type IconComponentType = React.ComponentType<IconProps>;
 
 interface TimerContextType {
   mode: TimerMode;
+  timerOptions: TimerOption[];
+  setTimerOptions: (options: TimerOption[]) => void;
   setMode: (mode: TimerMode) => void;
   selectedOption: TimerOption;
   setSelectedOption: (option: TimerOption) => void;
   isTimerRunning: boolean;
   setIsTimerRunning: (isRunning: boolean) => void;
   timeLeft: number;
-  maxTime: number;
+  setTimeLeft: (seconds: number) => void;
   handleTimerEnd: () => void;
-  timerKey: string;
   timerRef: React.RefObject<CircularTimerRef | null>;
   backgroundBehavior: BackgroundBehavior;
   setBackgroundBehavior: (behavior: BackgroundBehavior) => void;
+  isRepeatAvailable: boolean;
+  setIsRepeatAvailable: (available: boolean) => void;
+  resetTimer: () => void;
 }
+
+export const defaultTimerOptions: TimerOption[] = [
+  {
+    key: "testing",
+    label: "Testing",
+    workTimeInMinutes: 1 / 15,
+    breakTimeInMinutes: 1 / 18,
+  },
+  {
+    key: "pomodoro",
+    label: "Pomodoro",
+    workTimeInMinutes: 25,
+    breakTimeInMinutes: 5,
+  },
+  {
+    key: "5217",
+    label: "52/17",
+    workTimeInMinutes: 52,
+    breakTimeInMinutes: 17,
+  },
+  {
+    key: "ultradian",
+    label: "Ultradian",
+    workTimeInMinutes: 90,
+    breakTimeInMinutes: 25,
+  },
+  {
+    key: "custom1",
+    label: "Custom 1",
+    workTimeInMinutes: 45,
+    breakTimeInMinutes: 10,
+  },
+  {
+    key: "custom2",
+    label: "Custom 2",
+    workTimeInMinutes: 30,
+    breakTimeInMinutes: 15,
+  },
+  {
+    key: "custom3",
+    label: "Custom 3",
+    workTimeInMinutes: 20,
+    breakTimeInMinutes: 5,
+  },
+  {
+    key: "custom4",
+    label: "Custom 4",
+    workTimeInMinutes: 15,
+    breakTimeInMinutes: 10,
+  },
+  {
+    key: "custom5",
+    label: "Custom 5",
+    workTimeInMinutes: 10,
+    breakTimeInMinutes: 5,
+  },
+  {
+    key: "addNew",
+    label: "Add New",
+    workTimeInMinutes: 0,
+    breakTimeInMinutes: 0,
+    icon: Plus as IconComponentType,
+  },
+];
 
 const TimerContext = createContext<TimerContextType | undefined>(undefined);
 
 const TIMER_STORAGE_KEY = "saved_timer_state";
-
-const defaultOption = {
-  key: "pomodoro",
-  label: "Pomodoro",
-  workTimeInMinutes: 25,
-  breakTimeInMinutes: 5,
-};
 
 export const TimerContextProvider = ({ children }: { children: ReactNode }) => {
   const { appState } = useAppStateContext();
 
   const [mode, setMode] = useState<TimerMode>("work");
   const [selectedOption, setSelectedOption] = useState<TimerOption | null>(
-    null
+    defaultTimerOptions[0]
   );
-
+  const [timerOptions, setTimerOptions] =
+    useState<TimerOption[]>(defaultTimerOptions);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [isRepeatAvailable, setIsRepeatAvailable] = useState<boolean>(false);
 
-  const initialMaxTime = defaultOption.workTimeInMinutes * 60;
+  const initialMaxTime = defaultTimerOptions[0].workTimeInMinutes * 60;
 
   const [timeLeft, setTimeLeft] = useState(initialMaxTime);
-  const [maxTime, setMaxTime] = useState(initialMaxTime);
   const [backgroundBehavior, setBackgroundBehavior] =
     useState<BackgroundBehavior>("PAUSE");
 
   const startTimeRef = useRef<number | null>(null);
   const initialTimeLeftRef = useRef<number>(0);
+  const selectedOptionRef = useRef<TimerOption | null>(null);
   const timerRef = useRef<CircularTimerRef | null>(null);
 
-  const [timerKey, setTimerKey] = useState("init-key");
+  useEffect(() => {
+    let options = [...defaultTimerOptions];
+    const addNewOption = options.find((o) => o.key === "addNew");
+    options = options.filter((o) => o.key !== "addNew").slice(0, 10);
+    if (options.length < 10 && addNewOption) {
+      options.push(addNewOption);
+    }
+
+    setTimerOptions(options);
+  }, [defaultTimerOptions]);
 
   useEffect(() => {
     if (selectedOption) {
+      if (selectedOption !== selectedOptionRef.current) {
+        timerRef.current?.toggle(false);
+      }
+      selectedOptionRef.current = selectedOption;
       const minutes =
         mode === "work"
           ? selectedOption.workTimeInMinutes
           : selectedOption.breakTimeInMinutes;
       const seconds = Math.floor(minutes * 60);
 
-      setMaxTime(seconds);
-      if (!isTimerRunning) {
-        setTimeLeft(seconds);
-        updateTimerKey();
-      }
+      setTimeLeft(seconds);
+      initialTimeLeftRef.current = seconds;
     }
   }, [selectedOption, mode]);
 
@@ -167,8 +245,6 @@ export const TimerContextProvider = ({ children }: { children: ReactNode }) => {
 
             if (recoveredTime <= 0) {
               handleTimerEnd();
-            } else {
-              updateTimerKey();
             }
           }
           await removeData(TIMER_STORAGE_KEY);
@@ -179,19 +255,39 @@ export const TimerContextProvider = ({ children }: { children: ReactNode }) => {
     handleAppStateChange();
   }, [appState]);
 
-  const updateTimerKey = () => {
-    setTimerKey(`${mode}-${selectedOption?.key}-${Date.now()}`);
-  };
-
   const handleTimerEnd = () => {
     setIsTimerRunning(false);
-    console.log(`${mode} süresi doldu!`);
-
     if (mode === "work") {
       setMode("break");
+      setTimeLeft(selectedOption?.breakTimeInMinutes! * 60);
+      setTimeout(() => {
+        timerRef.current?.toggle(true);
+      }, 10);
     } else {
       setMode("work");
+      setTimeLeft(selectedOption?.workTimeInMinutes! * 60);
+      if (isRepeatAvailable) {
+        setTimeout(() => {
+          timerRef.current?.toggle(true);
+        }, 10);
+      } else {
+        setTimeout(() => {
+          timerRef.current?.toggle(false);
+        }, 10);
+      }
     }
+  };
+
+  const resetTimer = () => {
+    setIsTimerRunning(false);
+    const minutes =
+      mode === "work"
+        ? selectedOption?.workTimeInMinutes! * 60
+        : selectedOption?.breakTimeInMinutes! * 60;
+    setTimeLeft(minutes);
+    setTimeout(() => {
+      timerRef.current?.reset(minutes);
+    }, 10);
   };
 
   return (
@@ -199,17 +295,21 @@ export const TimerContextProvider = ({ children }: { children: ReactNode }) => {
       value={{
         mode,
         setMode,
+        timerOptions,
+        setTimerOptions,
         selectedOption: selectedOption!,
         setSelectedOption,
         isTimerRunning,
         setIsTimerRunning,
         timeLeft,
-        maxTime,
+        setTimeLeft,
         handleTimerEnd,
-        timerKey,
         backgroundBehavior,
         setBackgroundBehavior,
         timerRef,
+        isRepeatAvailable,
+        setIsRepeatAvailable,
+        resetTimer,
       }}
     >
       {children}

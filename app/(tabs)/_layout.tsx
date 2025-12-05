@@ -1,4 +1,4 @@
-import { Link, Tabs } from "expo-router";
+import { Link, Tabs, usePathname } from "expo-router";
 import { Button, Stack, useTheme } from "tamagui";
 import {
   Atom,
@@ -14,7 +14,12 @@ import { useEffect, useRef, useState } from "react";
 import { Animated, Settings } from "react-native";
 
 export default function TabLayout() {
-  const [homeButtonActive, setHomeButtonActive] = useState(true);
+  // const [homeButtonActive, setHomeButtonActive] = useState(true);
+
+  const pathname = usePathname();
+
+  // Home sayfasında mıyız?
+  const homeButtonActive = pathname === "/"; // veya "/(tabs)" yapısı varsa ayarla
 
   const theme = useTheme();
 
@@ -38,6 +43,10 @@ export default function TabLayout() {
     };
   }, []);
 
+  useEffect(() => {
+    triggerAnimation();
+  }, [pathname]);
+
   const triggerAnimation = () => {
     animationRef.current?.stop();
 
@@ -60,13 +69,8 @@ export default function TabLayout() {
     animationRef.current.start();
   };
 
-  const handleTabPress = (isSpecialTab?: boolean) => {
+  const handleTabPress = () => {
     triggerAnimation();
-    if (isSpecialTab) {
-      setHomeButtonActive(true);
-    } else {
-      setHomeButtonActive(false);
-    }
   };
 
   return (
@@ -113,7 +117,7 @@ export default function TabLayout() {
     >
       <Tabs.Screen
         name="two"
-        listeners={{ tabPress: () => handleTabPress(false) }}
+        listeners={{ tabPress: handleTabPress }}
         options={{
           tabBarShowLabel: false,
           tabBarIcon: ({ color, focused }) => (
@@ -128,7 +132,7 @@ export default function TabLayout() {
 
       <Tabs.Screen
         name="index"
-        listeners={{ tabPress: () => handleTabPress(true) }}
+        listeners={{ tabPress: handleTabPress }}
         options={{
           title: "QR Code",
           tabBarShowLabel: false,
@@ -168,10 +172,10 @@ export default function TabLayout() {
 
       <Tabs.Screen
         name="three"
-        listeners={{ tabPress: () => handleTabPress(false) }}
+        listeners={{ tabPress: handleTabPress }}
         options={{
           tabBarShowLabel: false,
-          title: "Stores",
+          title: "Settings",
           tabBarIcon: ({ color, focused }) => (
             <Cog marginTop={15} size={focused ? 45 : 40} color={color as any} />
           ),

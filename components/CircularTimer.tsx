@@ -29,13 +29,16 @@ export interface CircularTimerProps {
   onEnd?: () => void;
   onActiveChange?: (isActive: boolean) => void;
   disabledChange?: boolean;
+  centerTexts?: [string, string];
+  centerTextDisabled?: boolean;
+  onChange?: (seconds: number) => void;
 }
 
 export interface CircularTimerRef {
   toggle: (trigger?: boolean) => void;
+  reset: (seconds?: number) => void;
   // start: () => void;
   // stop: () => void;
-  // reset: (sec?: number) => void;
 }
 
 const CircularTimer = (
@@ -54,6 +57,9 @@ const CircularTimer = (
     onEnd,
     onActiveChange,
     disabledChange,
+    centerTexts = ["Start", "Stop"],
+    centerTextDisabled,
+    onChange,
   }: CircularTimerProps,
   ref: React.Ref<CircularTimerRef>
 ) => {
@@ -71,7 +77,7 @@ const CircularTimer = (
 
   const breathAnim = useRef(new Animated.Value(0)).current;
 
-  const handleChangeSpeed = (val: number) => {
+  const handleChangeSpeed = (val: number, updateCallback?: boolean) => {
     if (!isActive) {
       let currentVal = val;
       if (currentVal < 0) currentVal = 0;
@@ -79,6 +85,9 @@ const CircularTimer = (
       if (disabledChange) currentVal = totalSeconds;
 
       setTotalSeconds(Math.floor(currentVal));
+      if (onChange && updateCallback) {
+        onChange(Math.floor(currentVal));
+      }
     }
   };
 
@@ -139,6 +148,12 @@ const CircularTimer = (
 
   useImperativeHandle(ref, () => ({
     toggle: (trigger?: boolean) => toggleTimer(trigger),
+    reset: (seconds?: number) => {
+      setTotalSeconds(
+        seconds !== undefined ? Math.floor(seconds) : calculateInitialValue()
+      );
+      setIsActive(false);
+    },
   }));
 
   const animatedOpacity = breathAnim.interpolate({
@@ -147,7 +162,6 @@ const CircularTimer = (
   });
 
   const toggleTimer = (trigger?: boolean) => {
-    console.log("toggleTimer çağrıldı. isActive:", isActive);
     if (trigger !== undefined) {
       setIsActive(trigger);
     } else if (totalSeconds > 0) {
@@ -179,7 +193,8 @@ const CircularTimer = (
           flex={1}
           borderRadius={200}
           alignItems="center"
-          justifyContent="space-evenly"
+          justifyContent="center"
+          gap={5}
           onPress={() => toggleTimer()}
         >
           <Text
@@ -188,6 +203,7 @@ const CircularTimer = (
             textAlign="center"
             fontWeight="bold"
             color="$color"
+            mb={40}
           >
             {formatTime(totalSeconds)}
           </Text>
@@ -195,7 +211,6 @@ const CircularTimer = (
           <Animated.View
             style={{
               opacity: isActive ? animatedOpacity : 1,
-              marginBottom: 10,
             }}
           >
             <Power
@@ -203,6 +218,13 @@ const CircularTimer = (
               color={isActive ? activeColor : inactiveColor}
             />
           </Animated.View>
+          <Text textAlign="center" color="$color" fontSize={20}>
+            {centerTextDisabled
+              ? ""
+              : isActive
+              ? centerTexts[1]
+              : centerTexts[0]}
+          </Text>
         </YStack>
       </YStack>
 
@@ -218,6 +240,7 @@ const CircularTimer = (
         thumbColor={thumbColor}
         sliderTrackColor="transparent"
         isHideLines
+        onComplete={(val: number) => handleChangeSpeed(val, true)}
         isHideCenterContent
         thumbBorderColor={thumbBorderColor ?? activeColor}
         style={{
