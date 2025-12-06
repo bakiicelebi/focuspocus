@@ -4,11 +4,14 @@ import CircularTimer, {
   CircularTimerRef,
   CircularTimerProps,
 } from "./CircularTimer";
-import CustomDropDown from "components/Menus/CustomDropDown";
+import CustomDropDown, {
+  CustomDropDownRef,
+} from "components/Menus/CustomDropDown";
 import {
   TimerContextProvider,
   useTimerContext,
   TimerOption,
+  addNewKey,
 } from "../contexts/TimerContext";
 import {
   RefreshCcw,
@@ -56,6 +59,8 @@ const TimerScreenContent = () => {
 
   const [key, setKey] = React.useState(1);
 
+  const dropdownRef = useRef<CustomDropDownRef>(null);
+
   useEffect(() => {
     if (!selectedOption) {
       setSelectedOption(timerOptions[0]);
@@ -65,6 +70,22 @@ const TimerScreenContent = () => {
   const handleTimeChange = (seconds: number) => {
     setTimeLeft(seconds);
     console.log("Time left updated to:", seconds);
+  };
+
+  const handleAddNewOption = () => {
+    if (dropdownRef?.current) {
+      dropdownRef.current.toggle(false);
+    }
+    setKey((prev) => {
+      router.navigate({
+        pathname: "/(tabs)/three",
+        params: {
+          addNew: "true",
+          key: prev,
+        },
+      });
+      return prev + 1;
+    });
   };
 
   const currentConfig = timerStyle[mode];
@@ -90,23 +111,12 @@ const TimerScreenContent = () => {
       <XStack alignItems="center" gap="$4">
         <Text fontSize={16}>Timer Option:</Text>
         <CustomDropDown
+          ref={dropdownRef}
           selectedItem={selectedOption}
           items={timerOptions}
-          keyName="key"
-          labelName="label"
           onSelect={(item) => {
-            if (item.key === "addNew") {
-              console.log("Add New option selected");
-              setKey((prev) => {
-                router.navigate({
-                  pathname: "/(tabs)/three",
-                  params: {
-                    addNew: "true",
-                    key: prev,
-                  },
-                });
-                return prev + 1;
-              });
+            if (item.key === addNewKey) {
+              handleAddNewOption();
             } else {
               setSelectedOption(item as TimerOption);
             }

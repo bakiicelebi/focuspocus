@@ -9,7 +9,7 @@ import {
   useTheme,
   ScrollView,
 } from "tamagui";
-import React from "react";
+import React, { forwardRef } from "react";
 import OutsidePressHandler from "./OutsidePressHelper";
 import { ChevronDown, X } from "@tamagui/lucide-icons";
 import { getTokenValueFromProp } from "../../utils/theme/getNumericValue";
@@ -41,29 +41,36 @@ export interface CustomDropDownProps {
   deselectable?: boolean;
 }
 
-const CustomDropDown = ({
-  items,
-  selectedItem,
-  selectedItems = [], // multiSelect
-  onSelect,
-  keyName = "key",
-  labelName = "label",
-  height = "$listDropdownMenuHeight",
-  width = "$listDropdownMenuMinWidth",
-  minWidth = "$listDropdownMenuMinWidth",
-  maxWidth,
-  zIndex = 1000,
-  bg = "$cardBg",
-  menuBorderRadius = "$menuBorderRadius",
-  style = {},
-  multiSelect = false,
-  selectHeader = "Select an option",
-  autoComplete = false,
-  selectedOnTop = false,
-  clearWithButton = false,
-  disabled = false,
-  deselectable = true,
-}: CustomDropDownProps) => {
+export interface CustomDropDownRef {
+  toggle: (open: boolean) => void;
+}
+
+const CustomDropDown = (
+  {
+    items,
+    selectedItem,
+    selectedItems = [], // multiSelect
+    onSelect,
+    keyName = "key",
+    labelName = "label",
+    height = "$listDropdownMenuHeight",
+    width = "$listDropdownMenuMinWidth",
+    minWidth = "$listDropdownMenuMinWidth",
+    maxWidth,
+    zIndex = 1000,
+    bg = "$cardBg",
+    menuBorderRadius = "$menuBorderRadius",
+    style = {},
+    multiSelect = false,
+    selectHeader = "Select an option",
+    autoComplete = false,
+    selectedOnTop = false,
+    clearWithButton = false,
+    disabled = false,
+    deselectable = true,
+  }: CustomDropDownProps,
+  ref: React.Ref<CustomDropDownRef>
+) => {
   const [open, setOpen] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState(
     selectedItem?.[labelName] || ""
@@ -358,4 +365,4 @@ const InputHeader = ({ selectHeader }) => {
   );
 };
 
-export default CustomDropDown;
+export default forwardRef(CustomDropDown);
