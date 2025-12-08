@@ -14,6 +14,8 @@ import { Provider } from "components/Provider";
 import { useTheme } from "tamagui";
 import { AppStateContextProvider } from "contexts/AppStateContext";
 import { TimerContextProvider } from "contexts/TimerContext";
+import { ThemeProviderCustom, useThemeMode } from "contexts/ThemeContext";
+import { UserPreferencesContextProvider } from "contexts/UserPreferencesContext";
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -55,19 +57,25 @@ export default function RootLayout() {
 const Providers = ({ children }: { children: React.ReactNode }) => {
   return (
     <Provider>
-      <AppStateContextProvider>
-        <TimerContextProvider>{children}</TimerContextProvider>
-      </AppStateContextProvider>
+      <ThemeProviderCustom>
+        <UserPreferencesContextProvider>
+          <AppStateContextProvider>
+            <TimerContextProvider>{children}</TimerContextProvider>
+          </AppStateContextProvider>
+        </UserPreferencesContextProvider>
+      </ThemeProviderCustom>
     </Provider>
   );
 };
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme();
+  const { effectiveScheme } = useThemeMode();
   const theme = useTheme();
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
+    <ThemeProvider
+      value={effectiveScheme === "dark" ? DarkTheme : DefaultTheme}
+    >
+      <StatusBar style={effectiveScheme === "dark" ? "light" : "dark"} />
       <Stack>
         <Stack.Screen
           name="(tabs)"

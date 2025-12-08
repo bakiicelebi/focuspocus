@@ -11,6 +11,10 @@ import { getData, saveData, removeData } from "utils/AsyncStorageUtils";
 import { CircularTimerRef } from "components/CircularTimer";
 import type { IconProps } from "@tamagui/helpers-icon";
 import { Heart, Plus } from "@tamagui/lucide-icons";
+import { useUserPreferences } from "./UserPreferencesContext";
+import { Vibration } from "react-native";
+import { triggerVibrationPattern } from "utils/Vibrations";
+import { usePlaySound } from "hooks/usePlaySound";
 
 const ss = `
    {
@@ -122,13 +126,6 @@ export const fixedTimerOptions: TimerOption[] = [
     breakTimeInMinutes: 25,
     editable: false,
   },
-  {
-    key: "custom1",
-    label: "Custom 1",
-    workTimeInMinutes: 45,
-    breakTimeInMinutes: 10,
-    editable: true,
-  },
 ];
 
 export const addNewKey = "add*New";
@@ -148,6 +145,7 @@ const TIMER_OPTIONS_STORAGE_KEY = "timer_options";
 
 export const TimerContextProvider = ({ children }: { children: ReactNode }) => {
   const { appState } = useAppStateContext();
+  const { vibrationsEnabled, soundEnabled } = useUserPreferences();
 
   const [mode, setMode] = useState<TimerMode>("work");
   const [selectedOption, setSelectedOption] = useState<TimerOption | null>(
@@ -163,6 +161,8 @@ export const TimerContextProvider = ({ children }: { children: ReactNode }) => {
   const [timeLeft, setTimeLeft] = useState(initialMaxTime);
   const [backgroundBehavior, setBackgroundBehavior] =
     useState<BackgroundBehavior>("PAUSE");
+
+  const { play } = usePlaySound("notification");
 
   const startTimeRef = useRef<number | null>(null);
   const initialTimeLeftRef = useRef<number>(0);
@@ -282,12 +282,24 @@ export const TimerContextProvider = ({ children }: { children: ReactNode }) => {
     if (mode === "work") {
       setMode("break");
       setTimeLeft(selectedOption?.breakTimeInMinutes! * 60);
+      if (vibrationsEnabled) {
+        Promise.resolve().then(() => triggerVibrationPattern());
+      }
+      if (soundEnabled) {
+        play();
+      }
       setTimeout(() => {
         timerRef.current?.toggle(true);
       }, 10);
     } else {
       setMode("work");
       setTimeLeft(selectedOption?.workTimeInMinutes! * 60);
+      if (vibrationsEnabled) {
+        Promise.resolve().then(() => triggerVibrationPattern());
+      }
+      if (soundEnabled) {
+        play();
+      }
       if (isRepeatAvailable) {
         setTimeout(() => {
           timerRef.current?.toggle(true);

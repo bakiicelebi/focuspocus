@@ -2,12 +2,14 @@ import { cardLight, cardDark, cardTokens } from "./Card";
 import { generalDark, generalLight, generalTokens } from "./General";
 import { menuDark, menuLight, menuTokens } from "./Menu";
 import { buttonDark, buttonLight, buttonTokens } from "./Button";
+import { timerDark, timerLight, timerTokens } from "./Timer";
 
 export const lightTheme = {
   ...cardLight,
   ...generalLight,
   ...menuLight,
   ...buttonLight,
+  ...timerLight,
 };
 
 export const darkTheme = {
@@ -15,6 +17,7 @@ export const darkTheme = {
   ...generalDark,
   ...menuDark,
   ...buttonDark,
+  ...timerDark,
 };
 
 export const tokens = {
@@ -23,6 +26,7 @@ export const tokens = {
     ...menuTokens.size,
     ...generalTokens.size,
     ...buttonTokens.size,
+    ...timerTokens.size,
   },
   space: {
     ...cardTokens.space,

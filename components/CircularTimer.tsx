@@ -6,7 +6,7 @@ import React, {
   useImperativeHandle,
 } from "react";
 import { Animated, Easing } from "react-native";
-import { YStack, ZStack, Text, ViewProps } from "tamagui";
+import { YStack, ZStack, Text, ViewProps, getToken } from "tamagui";
 import { RadialSlider } from "react-native-radial-slider";
 import { Power } from "@tamagui/lucide-icons";
 import { interpolateColor } from "utils/InterpolateColor";
@@ -43,15 +43,15 @@ export interface CircularTimerRef {
 
 const CircularTimer = (
   {
-    size = 260,
-    thickness = 10,
+    size = getToken("$defaultTimerSize"),
+    thickness = getToken("$defaultTimerThickness"),
     maxSeconds = 30 * 60,
     initialSeconds,
-    startColor = "#072712c0",
-    endColor = "#007a29bd",
-    activeColor = "#38a15bff",
-    inactiveColor = "#ff0000ff",
-    thumbColor = "#114221ff",
+    startColor = "$timerWorkStartColor",
+    endColor = "$timerWorkEndColor",
+    activeColor = "$timerWorkActiveColor",
+    inactiveColor = "$timerWorkInactiveColor",
+    thumbColor = "$timerWorkThumbColor",
     thumbBorderColor,
     backgroundColor = "$background",
     onEnd,

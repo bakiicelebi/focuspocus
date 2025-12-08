@@ -30,17 +30,17 @@ const TimerOptionsForm = ({
   const theme = useTheme();
   const bg = theme.background.val;
 
+  const timerOptionsFiltered = timerOptions.filter(
+    (option) => option?.key !== addNewKey
+  );
+
   const disabledAddButton =
     titleValue.trim() === "" ||
     workTimeValue.trim() === "0" ||
     workTimeValue.trim() === "" ||
     breakTimeValue.trim() === "0" ||
     breakTimeValue.trim() === "" ||
-    timerOptions.length >= 10;
-
-  const timerOptionsFiltered = timerOptions.filter(
-    (option) => option?.key !== addNewKey
-  );
+    timerOptionsFiltered.length >= 10;
 
   const handleScroll = (e: any) => {
     const offsetY = e?.nativeEvent?.contentOffset?.y;
@@ -108,6 +108,10 @@ const TimerOptionsForm = ({
     }
     setDeletingOption(null);
     setIsDeletingDialogOpen(false);
+    setIsEditMode(false);
+    setTitleValue("Custom");
+    setWorkTimeValue("0");
+    setBreakTimeValue("0");
   };
 
   const saveOption = () => {
@@ -240,7 +244,7 @@ const TimerOptionsForm = ({
                 To delete an option, long press on it
               </Text>
             )}
-            {timerOptions?.length >= 10 && (
+            {timerOptionsFiltered?.length >= 10 && !isEditMode && (
               <Text my={3} textAlign="center" color="red">
                 Maximum of 10 timer options reached. Please delete an option to
                 add a new one.
@@ -249,7 +253,7 @@ const TimerOptionsForm = ({
           </YStack>
         </Stack>
 
-        <Stack borderRadius={10} bg="$cardBg" height={"60%"}>
+        <Stack borderRadius={10} bg="$backgroundOverlay" height={"60%"}>
           <Text m={6} textAlign="right">
             Total Options: {timerOptionsFiltered?.length}
           </Text>

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { Button, XStack, YStack, Text, Stack } from "tamagui";
+import { Button, XStack, YStack, Text, Stack, useTheme } from "tamagui";
 import CircularTimer, {
   CircularTimerRef,
   CircularTimerProps,
@@ -21,21 +21,22 @@ import {
   Undo2,
 } from "@tamagui/lucide-icons";
 import { router } from "expo-router";
+import { ShadowProps } from "constants/ShadowProps";
 
 const timerStyle: Record<"work" | "break", CircularTimerProps> = {
   work: {
-    startColor: "#072712c0",
-    endColor: "#007a29bd",
-    activeColor: "#38a15bff",
-    inactiveColor: "#ff0000ff",
-    thumbColor: "#114221ff",
+    startColor: "$timerWorkStartColor",
+    endColor: "$timerWorkEndColor",
+    activeColor: "$timerWorkActiveColor",
+    inactiveColor: "$timerWorkInactiveColor",
+    thumbColor: "$timerWorkThumbColor",
   },
   break: {
-    startColor: "#212707c0",
-    endColor: "#b5c710bd",
-    activeColor: "#81a138ff",
-    inactiveColor: "#ff0000ff",
-    thumbColor: "#b5c528ff",
+    startColor: "$timerBreakStartColor",
+    endColor: "$timerBreakEndColor",
+    activeColor: "$timerBreakActiveColor",
+    inactiveColor: "$timerBreakInactiveColor",
+    thumbColor: "$timerBreakThumbColor",
   },
 };
 
@@ -56,6 +57,10 @@ const TimerScreenContent = () => {
     setIsRepeatAvailable,
     resetTimer,
   } = useTimerContext();
+
+  console.log(selectedOption);
+
+  const theme = useTheme();
 
   const [key, setKey] = React.useState(1);
 
@@ -88,7 +93,17 @@ const TimerScreenContent = () => {
     });
   };
 
-  const currentConfig = timerStyle[mode];
+  const currentConfig = {
+    startColor:
+      theme[`timer${mode === "work" ? "Work" : "Break"}StartColor`].val,
+    endColor: theme[`timer${mode === "work" ? "Work" : "Break"}EndColor`].val,
+    activeColor:
+      theme[`timer${mode === "work" ? "Work" : "Break"}ActiveColor`].val,
+    inactiveColor:
+      theme[`timer${mode === "work" ? "Work" : "Break"}InactiveColor`].val,
+    thumbColor:
+      theme[`timer${mode === "work" ? "Work" : "Break"}ThumbColor`].val,
+  };
 
   if (!selectedOption) return null;
 
@@ -108,25 +123,22 @@ const TimerScreenContent = () => {
       px="$10"
       bg="$background"
     >
-      <XStack alignItems="center" gap="$4">
-        <Text fontSize={16}>Timer Option:</Text>
-        <CustomDropDown
-          ref={dropdownRef}
-          selectedItem={selectedOption}
-          items={timerOptions}
-          onSelect={(item) => {
-            if (item.key === addNewKey) {
-              handleAddNewOption();
-            } else {
-              setSelectedOption(item as TimerOption);
-            }
-          }}
-          minWidth={225}
-          height={40}
-          menuBorderRadius={10}
-          deselectable={false}
-        />
-      </XStack>
+      <CustomDropDown
+        ref={dropdownRef}
+        selectedItem={selectedOption}
+        items={timerOptions}
+        onSelect={(item) => {
+          if (item.key === addNewKey) {
+            handleAddNewOption();
+          } else {
+            setSelectedOption(item as TimerOption);
+          }
+        }}
+        minWidth={"95%"}
+        height={40}
+        menuBorderRadius={10}
+        deselectable={false}
+      />
 
       <XStack alignItems="center" gap="$4">
         <Button
@@ -135,6 +147,8 @@ const TimerScreenContent = () => {
           disabled={mode === "work" || isTimerRunning}
           borderColor={mode === "work" ? "green" : undefined}
           variant="outlined"
+          {...(ShadowProps.medium as any)}
+          fontWeight={600}
         >
           Work Mode
         </Button>
@@ -144,6 +158,8 @@ const TimerScreenContent = () => {
           disabled={mode === "break" || isTimerRunning}
           borderColor={mode === "break" ? "yellow" : undefined}
           variant="outlined"
+          {...(ShadowProps.medium as any)}
+          fontWeight={600}
         >
           Break Mode
         </Button>

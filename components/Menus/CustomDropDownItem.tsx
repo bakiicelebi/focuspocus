@@ -1,3 +1,4 @@
+import { useThemeMode } from "contexts/ThemeContext";
 import React from "react";
 import { XStack, View, Text } from "tamagui";
 
@@ -10,6 +11,9 @@ const CustomDropDownItem = ({
   labelName?: string;
   item?: any;
 }) => {
+  const { effectiveScheme } = useThemeMode();
+  const color = effectiveScheme === "dark" ? "white" : "black";
+
   return (
     <XStack
       flex={1}
@@ -19,7 +23,9 @@ const CustomDropDownItem = ({
       bg={selected ? "$menuSelected" : "transparent"}
     >
       {item?.icon && <item.icon size={"$iconSizeSmall"} color="$iconBorder" />}
-      <Text fontSize={"$6"}>{item[labelName]}</Text>
+      <Text fontSize={"$6"} color={color}>
+        {item[labelName]}
+      </Text>
     </XStack>
   );
 };
