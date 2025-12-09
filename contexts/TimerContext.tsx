@@ -15,6 +15,7 @@ import { useUserPreferences } from "./UserPreferencesContext";
 import { Vibration } from "react-native";
 import { triggerVibrationPattern } from "utils/Vibrations";
 import { usePlaySound } from "hooks/usePlaySound";
+import { NOTIFICATION_SOUND_SRC, useMediaContext } from "./MediaContext";
 
 const ss = `
    {
@@ -95,6 +96,10 @@ interface TimerContextType {
   isRepeatAvailable: boolean;
   setIsRepeatAvailable: (available: boolean) => void;
   resetTimer: () => void;
+  timerCurrentSecond: number;
+  setTimerCurrentSecond: (second: number) => void;
+  canVideoVisible: boolean;
+  setCanVideoVisible: (visible: boolean) => void;
 }
 
 export const fixedTimerOptions: TimerOption[] = [
@@ -156,13 +161,19 @@ export const TimerContextProvider = ({ children }: { children: ReactNode }) => {
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [isRepeatAvailable, setIsRepeatAvailable] = useState<boolean>(false);
 
+  const [timerCurrentSecond, setTimerCurrentSecond] = useState<number>(0);
+
+  console.log("TimerContext rendered. Current second:", timerCurrentSecond);
+
   const initialMaxTime = fixedTimerOptions[0].workTimeInMinutes * 60;
 
   const [timeLeft, setTimeLeft] = useState(initialMaxTime);
   const [backgroundBehavior, setBackgroundBehavior] =
     useState<BackgroundBehavior>("PAUSE");
 
-  const { play } = usePlaySound("notification");
+  const [canVideoVisible, setCanVideoVisible] = useState<boolean>(true);
+
+  const { play } = usePlaySound({ src: NOTIFICATION_SOUND_SRC, loop: false });
 
   const startTimeRef = useRef<number | null>(null);
   const initialTimeLeftRef = useRef<number>(0);
@@ -308,6 +319,7 @@ export const TimerContextProvider = ({ children }: { children: ReactNode }) => {
         setTimeout(() => {
           timerRef.current?.toggle(false);
         }, 10);
+        setCanVideoVisible(false);
       }
     }
   };
@@ -422,6 +434,10 @@ export const TimerContextProvider = ({ children }: { children: ReactNode }) => {
         isRepeatAvailable,
         setIsRepeatAvailable,
         resetTimer,
+        timerCurrentSecond,
+        setTimerCurrentSecond,
+        canVideoVisible,
+        setCanVideoVisible,
       }}
     >
       {children}

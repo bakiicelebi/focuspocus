@@ -1,13 +1,11 @@
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { View, Text, YStack, Heading, Button, XStack } from "tamagui";
+import { View, Text, YStack, Button, XStack } from "tamagui";
 import CustomDialog, { CustomDialogRef } from "./CustomDialog";
 import TimerOptionsForm from "./TimerOptionsForm";
 import { TimerOption, useTimerContext } from "contexts/TimerContext";
-import { useColorScheme } from "react-native";
 import { useThemeMode } from "contexts/ThemeContext";
 import {
-  AudioWaveform,
   Moon,
   SunDim,
   SunMoon,

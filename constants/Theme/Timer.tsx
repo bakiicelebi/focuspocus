@@ -10,6 +10,18 @@ export const timerLight = {
   timerBreakActiveColor: "#9c963fce",
   timerBreakInactiveColor: "#a50000ff",
   timerBreakThumbColor: "#ebff3aff",
+
+  timerOnVideoWorkStartColor: "#072712c0",
+  timerOnVideoWorkEndColor: "#007a29bd",
+  timerOnVideoWorkActiveColor: "#011b03ff",
+  timerOnVideoWorkThumbColor: "#022402ff",
+  timerOnVideoWorkSliderTrackColor: "#3070353b",
+
+  timerOnVideoBreakStartColor: "#212707c0",
+  timerOnVideoBreakEndColor: "#b5c710bd",
+  timerOnVideoBreakActiveColor: "#262701ff",
+  timerOnVideoBreakThumbColor: "#364401ff",
+  timerOnVideoBreakSliderTrackColor: "#7596013b",
 };
 
 export const timerDark = {
@@ -24,6 +36,18 @@ export const timerDark = {
   timerBreakActiveColor: "#81a138ff",
   timerBreakInactiveColor: "#ff0000ff",
   timerBreakThumbColor: "#b5c528ff",
+
+  timerOnVideoWorkStartColor: "#072712c0",
+  timerOnVideoWorkEndColor: "#007a29bd",
+  timerOnVideoWorkActiveColor: "#011b03ff",
+  timerOnVideoWorkThumbColor: "#022402ff",
+  timerOnVideoWorkSliderTrackColor: "#3070353b",
+
+  timerOnVideoBreakStartColor: "#212707c0",
+  timerOnVideoBreakEndColor: "#b5c710bd",
+  timerOnVideoBreakActiveColor: "#262701ff",
+  timerOnVideoBreakThumbColor: "#364401ff",
+  timerOnVideoBreakSliderTrackColor: "#7596013b",
 };
 
 export const timerTokens = {

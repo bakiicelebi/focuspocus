@@ -11,6 +11,7 @@ import { RadialSlider } from "react-native-radial-slider";
 import { Power } from "@tamagui/lucide-icons";
 import { interpolateColor } from "utils/InterpolateColor";
 import { formatTime } from "utils/TimeFormats";
+import { useTimerContext } from "contexts/TimerContext";
 
 type backgroundColorType = ViewProps["backgroundColor"];
 
@@ -32,13 +33,16 @@ export interface CircularTimerProps {
   centerTexts?: [string, string];
   centerTextDisabled?: boolean;
   onChange?: (seconds: number) => void;
+  outline?: boolean;
+  isButtonHidden?: boolean;
+  isCenterTextHidden?: boolean;
+  sliderTrackColor?: string;
+  workWithContext?: boolean;
 }
 
 export interface CircularTimerRef {
   toggle: (trigger?: boolean) => void;
   reset: (seconds?: number) => void;
-  // start: () => void;
-  // stop: () => void;
 }
 
 const CircularTimer = (
@@ -60,9 +64,16 @@ const CircularTimer = (
     centerTexts = ["Start", "Stop"],
     centerTextDisabled,
     onChange,
+    outline = true,
+    isButtonHidden = false,
+    isCenterTextHidden = false,
+    sliderTrackColor = "transparent",
+    workWithContext = false,
   }: CircularTimerProps,
   ref: React.Ref<CircularTimerRef>
 ) => {
+  const { setTimerCurrentSecond, timerCurrentSecond } = useTimerContext();
+
   const safeMaxSeconds = Math.max(1, Math.floor(maxSeconds));
 
   const calculateInitialValue = () => {
@@ -72,8 +83,12 @@ const CircularTimer = (
     return Math.floor(safeMaxSeconds / 6);
   };
 
-  const [totalSeconds, setTotalSeconds] = useState(calculateInitialValue());
+  const [totalSeconds, setTotalSeconds] = useState(calculateInitialValue); // Pass reference or call it, both work here since it's pure now
   const [isActive, setIsActive] = useState(false);
+
+  useEffect(() => {
+    setTimerCurrentSecond(totalSeconds);
+  }, []);
 
   const breathAnim = useRef(new Animated.Value(0)).current;
 
@@ -85,6 +100,7 @@ const CircularTimer = (
       if (disabledChange) currentVal = totalSeconds;
 
       setTotalSeconds(Math.floor(currentVal));
+      setTimerCurrentSecond(Math.floor(currentVal));
       if (onChange && updateCallback) {
         onChange(Math.floor(currentVal));
       }
@@ -104,11 +120,21 @@ const CircularTimer = (
   }, [isActive, onActiveChange]);
 
   useEffect(() => {
+    if (workWithContext) {
+      setTotalSeconds(timerCurrentSecond);
+    }
+  }, [timerCurrentSecond, workWithContext]);
+
+  useEffect(() => {
     let interval: ReturnType<typeof setInterval> | null = null;
 
     if (isActive && totalSeconds > 0) {
       interval = setInterval(() => {
-        setTotalSeconds((prev) => prev - 1);
+        setTotalSeconds((prev) => {
+          const next = prev - 1;
+          setTimerCurrentSecond(next);
+          return next;
+        });
       }, 1000);
     } else if (totalSeconds === 0 && isActive) {
       setIsActive(false);
@@ -149,9 +175,10 @@ const CircularTimer = (
   useImperativeHandle(ref, () => ({
     toggle: (trigger?: boolean) => toggleTimer(trigger),
     reset: (seconds?: number) => {
-      setTotalSeconds(
-        seconds !== undefined ? Math.floor(seconds) : calculateInitialValue()
-      );
+      const newVal =
+        seconds !== undefined ? Math.floor(seconds) : calculateInitialValue();
+      setTotalSeconds(newVal);
+      setTimerCurrentSecond(newVal);
       setIsActive(false);
     },
   }));
@@ -181,7 +208,7 @@ const CircularTimer = (
         width={size}
         height={size}
         borderRadius={size / 2}
-        borderWidth={thickness}
+        borderWidth={outline ? thickness : 0}
         borderColor={dynamicBorderColor}
         justifyContent="center"
         alignItems="center"
@@ -203,28 +230,38 @@ const CircularTimer = (
             textAlign="center"
             fontWeight="bold"
             color="$color"
-            mb={40}
+            mb={
+              isButtonHidden && isCenterTextHidden
+                ? 0
+                : isCenterTextHidden || isButtonHidden
+                ? 20
+                : 40
+            }
           >
             {formatTime(totalSeconds)}
           </Text>
 
-          <Animated.View
-            style={{
-              opacity: isActive ? animatedOpacity : 1,
-            }}
-          >
-            <Power
-              size={size * 0.15}
-              color={isActive ? activeColor : inactiveColor}
-            />
-          </Animated.View>
-          <Text textAlign="center" color="$color" fontSize={20}>
-            {centerTextDisabled
-              ? ""
-              : isActive
-              ? centerTexts[1]
-              : centerTexts[0]}
-          </Text>
+          {!isButtonHidden && (
+            <Animated.View
+              style={{
+                opacity: isActive ? animatedOpacity : 1,
+              }}
+            >
+              <Power
+                size={size * 0.15}
+                color={isActive ? activeColor : inactiveColor}
+              />
+            </Animated.View>
+          )}
+          {!isCenterTextHidden && (
+            <Text textAlign="center" color="$color" fontSize={20}>
+              {centerTextDisabled
+                ? ""
+                : isActive
+                ? centerTexts[1]
+                : centerTexts[0]}
+            </Text>
+          )}
         </YStack>
       </YStack>
 
@@ -238,7 +275,7 @@ const CircularTimer = (
         radius={size / 2 - thickness * 2}
         sliderWidth={thickness}
         thumbColor={thumbColor}
-        sliderTrackColor="transparent"
+        sliderTrackColor={sliderTrackColor}
         isHideLines
         onComplete={(val: number) => handleChangeSpeed(val, true)}
         isHideCenterContent

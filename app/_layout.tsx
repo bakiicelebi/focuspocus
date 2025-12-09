@@ -1,7 +1,5 @@
 import "../tamagui-web.css";
-
 import { useEffect } from "react";
-import { useColorScheme } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import {
   DarkTheme,
@@ -16,18 +14,15 @@ import { AppStateContextProvider } from "contexts/AppStateContext";
 import { TimerContextProvider } from "contexts/TimerContext";
 import { ThemeProviderCustom, useThemeMode } from "contexts/ThemeContext";
 import { UserPreferencesContextProvider } from "contexts/UserPreferencesContext";
+import VideoPlayerCustom from "components/VideoPlayerCustom";
+import { MediaProvider, useMediaContext } from "contexts/MediaContext";
 
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from "expo-router";
+export { ErrorBoundary } from "expo-router";
 
 export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
   initialRouteName: "(tabs)",
 };
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -38,7 +33,6 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (interLoaded || interError) {
-      // Hide the splash screen after the fonts have loaded (or an error was returned) and the UI is ready.
       SplashScreen.hideAsync();
     }
   }, [interLoaded, interError]);
@@ -59,9 +53,11 @@ const Providers = ({ children }: { children: React.ReactNode }) => {
     <Provider>
       <ThemeProviderCustom>
         <UserPreferencesContextProvider>
-          <AppStateContextProvider>
-            <TimerContextProvider>{children}</TimerContextProvider>
-          </AppStateContextProvider>
+          <MediaProvider>
+            <AppStateContextProvider>
+              <TimerContextProvider>{children}</TimerContextProvider>
+            </AppStateContextProvider>
+          </MediaProvider>
         </UserPreferencesContextProvider>
       </ThemeProviderCustom>
     </Provider>
@@ -71,11 +67,19 @@ const Providers = ({ children }: { children: React.ReactNode }) => {
 function RootLayoutNav() {
   const { effectiveScheme } = useThemeMode();
   const theme = useTheme();
+
+  const { videoRef, isVisible } = useMediaContext();
+
   return (
     <ThemeProvider
       value={effectiveScheme === "dark" ? DarkTheme : DefaultTheme}
     >
-      <StatusBar style={effectiveScheme === "dark" ? "light" : "dark"} />
+      <StatusBar
+        hidden={isVisible ? true : false}
+        style={effectiveScheme === "dark" ? "light" : "dark"}
+        backgroundColor="black"
+      />
+      {isVisible && <VideoPlayerCustom ref={videoRef} />}
       <Stack>
         <Stack.Screen
           name="(tabs)"

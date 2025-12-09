@@ -1,27 +1,21 @@
 import React, { useEffect, useRef } from "react";
-import { Button, XStack, YStack, Text, Stack, useTheme } from "tamagui";
-import CircularTimer, {
-  CircularTimerRef,
-  CircularTimerProps,
-} from "./CircularTimer";
+import { Button, XStack, YStack, Stack, useTheme } from "tamagui";
+import CircularTimer, { CircularTimerProps } from "./CircularTimer";
 import CustomDropDown, {
   CustomDropDownRef,
 } from "components/Menus/CustomDropDown";
 import {
-  TimerContextProvider,
   useTimerContext,
   TimerOption,
   addNewKey,
 } from "../contexts/TimerContext";
-import {
-  RefreshCcw,
-  RefreshCcwDot,
-  Repeat,
-  Undo,
-  Undo2,
-} from "@tamagui/lucide-icons";
+import { Repeat, Undo } from "@tamagui/lucide-icons";
 import { router } from "expo-router";
 import { ShadowProps } from "constants/ShadowProps";
+import {
+  useMediaContext,
+  VERTICAL_FIREPLACE_VIDEO_SRC,
+} from "contexts/MediaContext";
 
 const timerStyle: Record<"work" | "break", CircularTimerProps> = {
   work: {
@@ -58,9 +52,8 @@ const TimerScreenContent = () => {
     resetTimer,
   } = useTimerContext();
 
-  console.log(selectedOption);
-
   const theme = useTheme();
+  const { playVideo } = useMediaContext();
 
   const [key, setKey] = React.useState(1);
 
@@ -114,6 +107,9 @@ const TimerScreenContent = () => {
 
   const timerKey = `${mode}-${selectedOption?.key}-${selectedOption?.workTimeInMinutes}-${selectedOption?.breakTimeInMinutes}-${timeLeft}-${maxTime}`;
 
+  const workButtonDisabled = mode === "work" || isTimerRunning;
+  const breakButtonDisabled = mode === "break" || isTimerRunning;
+
   return (
     <YStack
       flex={1}
@@ -134,8 +130,8 @@ const TimerScreenContent = () => {
             setSelectedOption(item as TimerOption);
           }
         }}
-        minWidth={"95%"}
-        height={40}
+        minWidth={"100%"}
+        height={50}
         menuBorderRadius={10}
         deselectable={false}
       />
@@ -144,22 +140,34 @@ const TimerScreenContent = () => {
         <Button
           onPress={() => setMode("work")}
           flex={1}
-          disabled={mode === "work" || isTimerRunning}
+          disabled={workButtonDisabled}
           borderColor={mode === "work" ? "green" : undefined}
-          variant="outlined"
           {...(ShadowProps.medium as any)}
           fontWeight={600}
+          bg={"$accent12"}
+          theme={"green"}
+          textProps={{
+            opacity: workButtonDisabled ? 0.8 : 1,
+            fontWeight: !workButtonDisabled ? 500 : 700,
+          }}
+          borderWidth={!workButtonDisabled ? 1 : 2}
         >
           Work Mode
         </Button>
         <Button
           onPress={() => setMode("break")}
           flex={1}
-          disabled={mode === "break" || isTimerRunning}
+          disabled={breakButtonDisabled}
           borderColor={mode === "break" ? "yellow" : undefined}
-          variant="outlined"
+          borderWidth={!breakButtonDisabled ? 1 : 2}
           {...(ShadowProps.medium as any)}
           fontWeight={600}
+          bg={"$accent12"}
+          theme={"yellow"}
+          textProps={{
+            opacity: breakButtonDisabled ? 0.8 : 1,
+            fontWeight: !breakButtonDisabled ? 500 : 700,
+          }}
         >
           Break Mode
         </Button>
@@ -179,6 +187,10 @@ const TimerScreenContent = () => {
           />
         </Stack>
       </XStack>
+
+      <Button onPress={() => playVideo(VERTICAL_FIREPLACE_VIDEO_SRC)}>
+        Play Video
+      </Button>
 
       <CircularTimer
         ref={timerRef}
