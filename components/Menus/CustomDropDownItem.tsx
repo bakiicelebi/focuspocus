@@ -6,13 +6,23 @@ const CustomDropDownItem = ({
   selected = false,
   item,
   labelName = "label",
+  colorScheme,
 }: {
   selected?: boolean;
   labelName?: string;
   item?: any;
+  colorScheme?: "light" | "dark";
 }) => {
   const { effectiveScheme } = useThemeMode();
-  const color = effectiveScheme === "dark" ? "white" : "black";
+  const color = colorScheme
+    ? colorScheme === "dark"
+      ? "white"
+      : "black"
+    : effectiveScheme === "dark"
+    ? "white"
+    : "black";
+
+  console.log("CustomDropDownItem colorScheme:", colorScheme);
 
   return (
     <XStack

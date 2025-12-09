@@ -16,17 +16,27 @@ import {
 } from "@tamagui/lucide-icons";
 import { ShadowProps } from "constants/ShadowProps";
 import { useUserPreferences } from "contexts/UserPreferencesContext";
+import MediaPreferences from "./MediaPreferences";
 
 const SettingsContent = () => {
   const params = useLocalSearchParams();
   const { timerOptions, saveTimerOption, removeTimerOption } =
     useTimerContext();
+  const { effectiveScheme: effectiveColorScheme } = useThemeMode();
   const { setColorScheme: setThemeColorScheme, colorScheme } = useThemeMode();
   const {
     vibrationsEnabled,
     setVibrationsEnabled,
     soundEnabled,
     setSoundEnabled,
+    videoEnabled,
+    setVideoEnabled,
+    videoPreference,
+    setVideoPreference,
+    musicEnabled,
+    setMusicEnabled,
+    musicPreference,
+    setMusicPreference,
   } = useUserPreferences();
 
   const [colorSchemeState, setColorSchemeState] = useState<
@@ -191,6 +201,36 @@ const SettingsContent = () => {
             Sound
           </Button>
         </XStack>
+        <CustomDialog
+          ref={timerOptionsDialogRef}
+          triggerHeader="Media Preferences"
+          headerFontSize={25}
+          triggerProps={{
+            fontSize: 20,
+            width: "90%",
+            ...(ShadowProps.medium as any),
+            borderRadius: 10,
+            height: 50,
+            bg: "$cardBg",
+          }}
+          height={"80%"}
+          width={"95%"}
+          header="Media Preferences"
+          buttons={[{ label: "Done", onPress() {}, bg: "$cardBg" }]}
+          children={
+            <MediaPreferences
+              videoEnabled={videoEnabled}
+              setVideoEnabled={setVideoEnabled}
+              videoPreference={videoPreference}
+              setVideoPreference={setVideoPreference}
+              musicEnabled={musicEnabled}
+              setMusicEnabled={setMusicEnabled}
+              musicPreference={musicPreference}
+              setMusicPreference={setMusicPreference}
+              colorScheme={effectiveColorScheme}
+            />
+          }
+        />
       </YStack>
     </View>
   );

@@ -25,6 +25,7 @@ const VideoPlayerCustom = (props: any, ref: React.Ref<VideoPlayerRef>) => {
     setCanVideoVisible,
   } = useTimerContext();
 
+
   const player = useVideoPlayer(videoSrc, (player) => {
     player.loop = true;
     player.play();

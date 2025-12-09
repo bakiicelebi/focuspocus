@@ -3,24 +3,22 @@ import { VideoSource } from "expo-video";
 import { VideoPlayerRef } from "components/VideoPlayerCustom";
 import { AudioSource } from "expo-audio";
 import { usePlaySound } from "hooks/usePlaySound";
+import { FIREPLACE_SOUND_SRC, NOTIFICATION_SOUND_SRC, useUserPreferences, VERTICAL_FIREPLACE_VIDEO_SRC } from "./UserPreferencesContext";
 
 type MediaContextType = {
   videoSrc: VideoSource | null;
   isVisible: boolean;
-  playVideo: (src: VideoSource) => void;
+  playVideo: () => void;
   hideVideo: () => void;
   videoRef?: React.Ref<VideoPlayerRef>;
 };
 
 const MediaContext = createContext<MediaContextType | null>(null);
 
-export const VERTICAL_FIREPLACE_VIDEO_SRC = require("assets/videos/fireplace_vertical.mp4");
-export const HORIZONTAL_FIREPLACE_VIDEO_SRC = require("assets/videos/fireplace_horizontal.mp4");
-
-export const NOTIFICATION_SOUND_SRC = require("assets/sounds/notification_sound.mp3");
-export const FIREPLACE_SOUND_SRC = require("assets/sounds/fireplace_sound.mp3");
-
 export const MediaProvider = ({ children }: { children: React.ReactNode }) => {
+  const { videoPreference, musicPreference, musicEnabled } =
+    useUserPreferences();
+
   const [videoSrc, setVideoSrc] = useState<VideoSource | null>(
     require("assets/videos/fireplace_vertical.mp4")
   );
@@ -36,16 +34,24 @@ export const MediaProvider = ({ children }: { children: React.ReactNode }) => {
     src: NOTIFICATION_SOUND_SRC,
   });
 
+  console.log(videoPreference);
+
   const videoRef = useRef<VideoPlayerRef>(null);
 
-  const playVideo = (src: VideoSource) => {
-    setVideoSrc(src);
+  const playVideo = () => {
+    setVideoSrc(
+      videoPreference?.source
+        ? videoPreference?.source
+        : VERTICAL_FIREPLACE_VIDEO_SRC
+    );
     setIsVisible(true);
     if (videoRef?.current) {
       videoRef.current.play();
     }
     setTimeout(() => {
-      playSound(FIREPLACE_SOUND_SRC);
+      if (musicEnabled) {
+        playMusic();
+      }
     }, 1000);
   };
 
@@ -58,8 +64,10 @@ export const MediaProvider = ({ children }: { children: React.ReactNode }) => {
     stopSound();
   };
 
-  const playSound = (src: AudioSource) => {
-    setSrc(src);
+  const playMusic = () => {
+    setSrc(
+      musicPreference?.source ? musicPreference.source : FIREPLACE_SOUND_SRC
+    );
     play();
   };
 

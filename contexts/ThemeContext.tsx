@@ -32,6 +32,8 @@ export const ThemeProviderCustom = ({
   const effectiveScheme: "light" | "dark" =
     colorScheme === "default" ? systemScheme : colorScheme;
 
+    console.log("Effective Scheme:", effectiveScheme);
+
   useEffect(() => {
     loadColorScheme();
   }, []);

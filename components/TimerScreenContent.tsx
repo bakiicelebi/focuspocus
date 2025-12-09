@@ -12,10 +12,7 @@ import {
 import { Repeat, Undo } from "@tamagui/lucide-icons";
 import { router } from "expo-router";
 import { ShadowProps } from "constants/ShadowProps";
-import {
-  useMediaContext,
-  VERTICAL_FIREPLACE_VIDEO_SRC,
-} from "contexts/MediaContext";
+import { useMediaContext } from "contexts/MediaContext";
 
 const timerStyle: Record<"work" | "break", CircularTimerProps> = {
   work: {
@@ -188,9 +185,7 @@ const TimerScreenContent = () => {
         </Stack>
       </XStack>
 
-      <Button onPress={() => playVideo(VERTICAL_FIREPLACE_VIDEO_SRC)}>
-        Play Video
-      </Button>
+      <Button onPress={playVideo}>Play Video</Button>
 
       <CircularTimer
         ref={timerRef}

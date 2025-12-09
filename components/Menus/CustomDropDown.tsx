@@ -39,6 +39,7 @@ export interface CustomDropDownProps {
   clearWithButton?: boolean;
   disabled?: boolean;
   deselectable?: boolean;
+  colorScheme?: "light" | "dark";
 }
 
 export interface CustomDropDownRef {
@@ -68,6 +69,7 @@ const CustomDropDown = (
     clearWithButton = false,
     disabled = false,
     deselectable = true,
+    colorScheme,
   }: CustomDropDownProps,
   ref: React.Ref<CustomDropDownRef>
 ) => {
@@ -232,7 +234,7 @@ const CustomDropDown = (
             {multiSelect ? (
               <InputHeader selectHeader={selectHeader} />
             ) : selectedItem ? (
-              <CustomDropDownItem item={selectedItem} />
+              <CustomDropDownItem item={selectedItem} colorScheme={colorScheme} />
             ) : (
               <InputHeader selectHeader={selectHeader} />
             )}
@@ -334,6 +336,7 @@ const CustomDropDown = (
                             selected={isSelected}
                             item={item}
                             labelName={labelName}
+                            colorScheme={colorScheme}
                           />
                         </View>
                       );
