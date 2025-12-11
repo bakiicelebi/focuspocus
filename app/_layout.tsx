@@ -68,18 +68,18 @@ function RootLayoutNav() {
   const { effectiveScheme } = useThemeMode();
   const theme = useTheme();
 
-  const { videoRef, isVisible } = useMediaContext();
+  const { videoRef, isVideoVisible } = useMediaContext();
 
   return (
     <ThemeProvider
       value={effectiveScheme === "dark" ? DarkTheme : DefaultTheme}
     >
       <StatusBar
-        hidden={isVisible ? true : false}
+        hidden={isVideoVisible ? true : false}
         style={effectiveScheme === "dark" ? "light" : "dark"}
         backgroundColor="black"
       />
-      {isVisible && <VideoPlayerCustom ref={videoRef} />}
+      {isVideoVisible && <VideoPlayerCustom ref={videoRef} />}
       <Stack>
         <Stack.Screen
           name="(tabs)"

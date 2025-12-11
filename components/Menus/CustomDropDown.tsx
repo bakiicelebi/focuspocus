@@ -40,6 +40,7 @@ export interface CustomDropDownProps {
   disabled?: boolean;
   deselectable?: boolean;
   colorScheme?: "light" | "dark";
+  maxVisibleItemCount?: number;
 }
 
 export interface CustomDropDownRef {
@@ -70,6 +71,7 @@ const CustomDropDown = (
     disabled = false,
     deselectable = true,
     colorScheme,
+    maxVisibleItemCount = 4,
   }: CustomDropDownProps,
   ref: React.Ref<CustomDropDownRef>
 ) => {
@@ -89,7 +91,7 @@ const CustomDropDown = (
   const calculatedWidth = getTokenValueFromProp(width);
   const menuBorderRadiusValue = getTokenValueFromProp(menuBorderRadius);
 
-  const maxVisibleItems = 4;
+  const maxVisibleItems = maxVisibleItemCount;
   const visibleItemsCount = Math.min(filteredItems.length, maxVisibleItems);
   const dropdownHeight = calculatedHeight * visibleItemsCount;
 
@@ -234,7 +236,10 @@ const CustomDropDown = (
             {multiSelect ? (
               <InputHeader selectHeader={selectHeader} />
             ) : selectedItem ? (
-              <CustomDropDownItem item={selectedItem} colorScheme={colorScheme} />
+              <CustomDropDownItem
+                item={selectedItem}
+                colorScheme={colorScheme}
+              />
             ) : (
               <InputHeader selectHeader={selectHeader} />
             )}

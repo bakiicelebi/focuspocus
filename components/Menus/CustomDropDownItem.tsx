@@ -22,8 +22,6 @@ const CustomDropDownItem = ({
     ? "white"
     : "black";
 
-  console.log("CustomDropDownItem colorScheme:", colorScheme);
-
   return (
     <XStack
       flex={1}

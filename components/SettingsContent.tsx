@@ -33,6 +33,10 @@ const SettingsContent = () => {
     setVideoEnabled,
     videoPreference,
     setVideoPreference,
+    soundEffectEnabled,
+    setSoundEffectEnabled,
+    soundEffectPreference,
+    setSoundEffectPreference,
     musicEnabled,
     setMusicEnabled,
     musicPreference,
@@ -213,16 +217,20 @@ const SettingsContent = () => {
             height: 50,
             bg: "$cardBg",
           }}
-          height={"80%"}
+          height={"85%"}
           width={"95%"}
           header="Media Preferences"
-          buttons={[{ label: "Done", onPress() {}, bg: "$cardBg" }]}
+          buttons={[{ label: "Done", onPress: () => {}, bg: "$cardBg" }]}
           children={
             <MediaPreferences
               videoEnabled={videoEnabled}
               setVideoEnabled={setVideoEnabled}
               videoPreference={videoPreference}
               setVideoPreference={setVideoPreference}
+              soundEffectEnabled={soundEffectEnabled}
+              setSoundEffectEnabled={setSoundEffectEnabled}
+              soundEffectPreference={soundEffectPreference}
+              setSoundEffectPreference={setSoundEffectPreference}
               musicEnabled={musicEnabled}
               setMusicEnabled={setMusicEnabled}
               musicPreference={musicPreference}

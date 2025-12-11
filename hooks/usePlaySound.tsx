@@ -6,19 +6,25 @@ type CreatePlayerOptions = {
   loop?: boolean;
   mute?: boolean;
   playbackRate?: number;
+  volume?: number;
 };
 
 export const usePlaySound = ({
   src,
   loop = false,
   mute = false,
+  volume = 1,
 }: CreatePlayerOptions) => {
   const [inlineSrc, setInlineSrc] = useState<AudioSource | null>(src);
   const player = useAudioPlayer(inlineSrc);
 
+  const inlineVolume =
+    volume < 0 ? 0 : volume > 1 ? 1 : Number(volume) !== undefined ? volume : 1;
+
   // Configure player
   player.loop = loop;
   player.muted = mute;
+  player.volume = mute ? 0 : inlineVolume ? inlineVolume : 1;
 
   // Subscribe to live playback status
   const status = useAudioPlayerStatus(player);

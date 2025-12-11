@@ -15,7 +15,7 @@ import { useUserPreferences } from "./UserPreferencesContext";
 import { Vibration } from "react-native";
 import { triggerVibrationPattern } from "utils/Vibrations";
 import { usePlaySound } from "hooks/usePlaySound";
-import { NOTIFICATION_SOUND_SRC, useMediaContext } from "./MediaContext";
+import { useMediaContext } from "./MediaContext";
 
 const ss = `
    {
@@ -163,8 +163,6 @@ export const TimerContextProvider = ({ children }: { children: ReactNode }) => {
 
   const [timerCurrentSecond, setTimerCurrentSecond] = useState<number>(0);
 
-  console.log("TimerContext rendered. Current second:", timerCurrentSecond);
-
   const initialMaxTime = fixedTimerOptions[0].workTimeInMinutes * 60;
 
   const [timeLeft, setTimeLeft] = useState(initialMaxTime);
@@ -173,7 +171,7 @@ export const TimerContextProvider = ({ children }: { children: ReactNode }) => {
 
   const [canVideoVisible, setCanVideoVisible] = useState<boolean>(true);
 
-  const { play } = usePlaySound({ src: NOTIFICATION_SOUND_SRC, loop: false });
+  const { play } = usePlaySound({ src: "", loop: false });
 
   const startTimeRef = useRef<number | null>(null);
   const initialTimeLeftRef = useRef<number>(0);

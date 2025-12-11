@@ -13,6 +13,7 @@ import { Repeat, Undo } from "@tamagui/lucide-icons";
 import { router } from "expo-router";
 import { ShadowProps } from "constants/ShadowProps";
 import { useMediaContext } from "contexts/MediaContext";
+import useTimerOptionLocalize from "hooks/useTimerOptionLocalize";
 
 const timerStyle: Record<"work" | "break", CircularTimerProps> = {
   work: {
@@ -51,6 +52,7 @@ const TimerScreenContent = () => {
 
   const theme = useTheme();
   const { playVideo } = useMediaContext();
+  const { loadOption, syncSelectedOption } = useTimerOptionLocalize();
 
   const [key, setKey] = React.useState(1);
 
@@ -60,7 +62,19 @@ const TimerScreenContent = () => {
     if (!selectedOption) {
       setSelectedOption(timerOptions[0]);
     }
+    setTimeout(() => {
+      loadSelectedOption();
+    }, 50);
   }, []);
+
+  const loadSelectedOption = async () => {
+    console.log("Loading selected option from storage...");
+    const localizedOption = await loadOption();
+    if (localizedOption !== null) {
+      console.log("Setting selected option from storage:", localizedOption);
+      setSelectedOption(localizedOption);
+    }
+  };
 
   const handleTimeChange = (seconds: number) => {
     setTimeLeft(seconds);
@@ -125,6 +139,8 @@ const TimerScreenContent = () => {
             handleAddNewOption();
           } else {
             setSelectedOption(item as TimerOption);
+            syncSelectedOption(item as TimerOption);
+            console.log("Selected timer option:", item);
           }
         }}
         minWidth={"100%"}

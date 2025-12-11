@@ -3,11 +3,16 @@ import { VideoSource } from "expo-video";
 import { VideoPlayerRef } from "components/VideoPlayerCustom";
 import { AudioSource } from "expo-audio";
 import { usePlaySound } from "hooks/usePlaySound";
-import { FIREPLACE_SOUND_SRC, NOTIFICATION_SOUND_SRC, useUserPreferences, VERTICAL_FIREPLACE_VIDEO_SRC } from "./UserPreferencesContext";
+import {
+  FIREPLACE_SOUNDEFFECT_SRC,
+  NOTIFICATION_SOUNDEFFECT_SRC,
+  useUserPreferences,
+  VERTICAL_FIREPLACE_VIDEO_SRC,
+} from "./UserPreferencesContext";
 
 type MediaContextType = {
   videoSrc: VideoSource | null;
-  isVisible: boolean;
+  isVideoVisible: boolean;
   playVideo: () => void;
   hideVideo: () => void;
   videoRef?: React.Ref<VideoPlayerRef>;
@@ -16,25 +21,39 @@ type MediaContextType = {
 const MediaContext = createContext<MediaContextType | null>(null);
 
 export const MediaProvider = ({ children }: { children: React.ReactNode }) => {
-  const { videoPreference, musicPreference, musicEnabled } =
-    useUserPreferences();
+  const {
+    videoPreference,
+    musicPreference,
+    musicEnabled,
+    soundEffectEnabled,
+    soundEffectPreference,
+  } = useUserPreferences();
 
   const [videoSrc, setVideoSrc] = useState<VideoSource | null>(
     require("assets/videos/fireplace_vertical.mp4")
   );
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVideoVisible, setVideoIsVisible] = useState(false);
+
+  // --- SOUND EFFECT PLAYER ---
   const {
-    play,
-    pause,
-    stop: stopSound,
-    player,
-    status,
-    setSrc,
+    play: playEffect,
+    stop: stopEffect,
+    setSrc: setEffectSrc,
   } = usePlaySound({
-    src: NOTIFICATION_SOUND_SRC,
+    src: NOTIFICATION_SOUNDEFFECT_SRC,
+    loop: false,
+    volume: musicEnabled ? 0.4 : 1,
   });
 
-  console.log(videoPreference);
+  // --- MUSIC PLAYER ---
+  const {
+    play: playMusicPlayer,
+    stop: stopMusic,
+    setSrc: setMusicSrc,
+  } = usePlaySound({
+    src: FIREPLACE_SOUNDEFFECT_SRC,
+    loop: true,
+  });
 
   const videoRef = useRef<VideoPlayerRef>(null);
 
@@ -44,36 +63,53 @@ export const MediaProvider = ({ children }: { children: React.ReactNode }) => {
         ? videoPreference?.source
         : VERTICAL_FIREPLACE_VIDEO_SRC
     );
-    setIsVisible(true);
+    setVideoIsVisible(true);
     if (videoRef?.current) {
       videoRef.current.play();
     }
     setTimeout(() => {
+      if (soundEffectEnabled) {
+        playSoundEffect();
+      }
       if (musicEnabled) {
-        playMusic();
+        setTimeout(() => {
+          playMusic();
+        }, 500);
       }
     }, 1000);
   };
 
   const hideVideo = () => {
-    setIsVisible(false);
+    setVideoIsVisible(false);
     setVideoSrc(null);
     if (videoRef?.current) {
       videoRef.current.pause();
     }
-    stopSound();
+    stopMusic();
+    stopEffect();
+  };
+
+  const playSoundEffect = () => {
+    setEffectSrc(
+      soundEffectPreference?.source
+        ? soundEffectPreference.source
+        : FIREPLACE_SOUNDEFFECT_SRC
+    );
+    playEffect();
   };
 
   const playMusic = () => {
-    setSrc(
-      musicPreference?.source ? musicPreference.source : FIREPLACE_SOUND_SRC
+    setMusicSrc(
+      musicPreference?.source
+        ? musicPreference.source
+        : FIREPLACE_SOUNDEFFECT_SRC
     );
-    play();
+    playMusicPlayer();
   };
 
   return (
     <MediaContext.Provider
-      value={{ videoSrc, isVisible, playVideo, hideVideo, videoRef }}
+      value={{ videoSrc, isVideoVisible, playVideo, hideVideo, videoRef }}
     >
       {children}
     </MediaContext.Provider>

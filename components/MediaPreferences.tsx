@@ -5,6 +5,8 @@ import CustomSwitch from "./CustomSwitch";
 import {
   MusicPreference,
   musics,
+  SoundEffectPreference,
+  soundEffects,
   useUserPreferences,
   VideoPreference,
   videos,
@@ -16,6 +18,10 @@ const MediaPreferences = ({
   setVideoEnabled,
   videoPreference,
   setVideoPreference,
+  soundEffectEnabled,
+  setSoundEffectEnabled,
+  soundEffectPreference,
+  setSoundEffectPreference,
   musicEnabled,
   setMusicEnabled,
   musicPreference,
@@ -26,6 +32,10 @@ const MediaPreferences = ({
   setVideoEnabled: (enabled: boolean) => void;
   videoPreference: VideoPreference;
   setVideoPreference: (preference: VideoPreference) => void;
+  soundEffectEnabled: boolean;
+  setSoundEffectEnabled: (enabled: boolean) => void;
+  soundEffectPreference: SoundEffectPreference;
+  setSoundEffectPreference: (preference: SoundEffectPreference) => void;
   musicEnabled: boolean;
   setMusicEnabled: (enabled: boolean) => void;
   musicPreference: MusicPreference;
@@ -33,10 +43,10 @@ const MediaPreferences = ({
 }) => {
   return (
     <YStack pt={"$5"} flex={1}>
-      <Text fontSize={20} fontWeight="bold" mb={"$3"}>
+      <Text fontSize={20} fontWeight="bold" mb={"$2"}>
         Video Preferences
       </Text>
-      <Separator mb={"$3"} />
+      <Separator mb={"$2"} />
       <XStack
         justify={"space-between"}
         alignItems="center"
@@ -57,10 +67,40 @@ const MediaPreferences = ({
         onSelect={setVideoPreference}
         colorScheme={colorScheme}
       />
-      <Text mt={"$10"} fontSize={20} fontWeight="bold" mb={"$3"}>
+
+      {/* Sound Effect Preferences */}
+
+      <Text mt={"$6"} fontSize={20} fontWeight="bold" mb={"$2"}>
+        Sound Effect Preferences
+      </Text>
+      <Separator mb={"$2"} />
+      <XStack
+        justify={"space-between"}
+        alignItems="center"
+        my={"$3"}
+        mx={"$2"}
+        gap={"$2"}
+      >
+        <Text fontSize={16} fontWeight="500">
+          Sound Effect Enabled
+        </Text>
+        <CustomSwitch state={soundEffectEnabled} setState={setSoundEffectEnabled} />
+      </XStack>
+      <CustomDropDown
+        width={"90%"}
+        height={50}
+        items={soundEffects}
+        selectedItem={soundEffectPreference}
+        onSelect={setSoundEffectPreference}
+        colorScheme={colorScheme}
+      />
+
+      {/** Music Preferences */}
+
+      <Text mt={"$6"} fontSize={20} fontWeight="bold" mb={"$2"}>
         Music Preferences
       </Text>
-      <Separator mb={"$3"} />
+      <Separator mb={"$2"} />
       <XStack
         justify={"space-between"}
         alignItems="center"
@@ -80,6 +120,7 @@ const MediaPreferences = ({
         selectedItem={musicPreference}
         onSelect={setMusicPreference}
         colorScheme={colorScheme}
+        maxVisibleItemCount={3}
       />
     </YStack>
   );

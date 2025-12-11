@@ -1,11 +1,20 @@
 import { useEvent } from "expo";
 import { useVideoPlayer, VideoView } from "expo-video";
-import { View, Button, Stack, Text, useTheme } from "tamagui";
-import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
+import { View, Button, Stack, Text, useTheme, XStack } from "tamagui";
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 
 import { useMediaContext } from "contexts/MediaContext";
 import CircularTimer from "./CircularTimer";
 import { useTimerContext } from "contexts/TimerContext";
+import { formatTime } from "utils/TimeFormats";
+import { Circle, Dot } from "@tamagui/lucide-icons";
+import { Animated, Easing } from "react-native";
 
 export interface VideoPlayerRef {
   play: () => void;
@@ -13,7 +22,7 @@ export interface VideoPlayerRef {
 }
 
 const VideoPlayerCustom = (props: any, ref: React.Ref<VideoPlayerRef>) => {
-  const { videoSrc, isVisible, playVideo, hideVideo } = useMediaContext();
+  const { videoSrc, isVideoVisible, playVideo, hideVideo } = useMediaContext();
   const [videoStarted, setVideoStarted] = useState(false);
 
   const theme = useTheme();
@@ -25,6 +34,7 @@ const VideoPlayerCustom = (props: any, ref: React.Ref<VideoPlayerRef>) => {
     setCanVideoVisible,
   } = useTimerContext();
 
+  const breathAnim = useRef(new Animated.Value(0)).current;
 
   const player = useVideoPlayer(videoSrc, (player) => {
     player.loop = true;
@@ -36,7 +46,7 @@ const VideoPlayerCustom = (props: any, ref: React.Ref<VideoPlayerRef>) => {
   });
 
   useEffect(() => {
-    if (!canVideoVisible && isVisible) {
+    if (!canVideoVisible && isVideoVisible) {
       setCanVideoVisible(true);
       hideVideo();
     }
@@ -51,6 +61,37 @@ const VideoPlayerCustom = (props: any, ref: React.Ref<VideoPlayerRef>) => {
       setVideoStarted(false);
     },
   }));
+
+  useEffect(() => {
+    if (videoStarted) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(breathAnim, {
+            toValue: 1,
+            duration: 1000,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.delay(500),
+          Animated.timing(breathAnim, {
+            toValue: 0,
+            duration: 1000,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    } else {
+      breathAnim.stopAnimation(() => {
+        breathAnim.setValue(0);
+      });
+    }
+  }, [videoStarted]);
+
+  const animatedOpacity = breathAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.4, 1],
+  });
 
   const currentConfig = {
     startColor:
@@ -68,16 +109,14 @@ const VideoPlayerCustom = (props: any, ref: React.Ref<VideoPlayerRef>) => {
         .val,
   };
 
-  console.log(timerCurrentSecond);
-
   return (
     <Stack onPress={() => hideVideo()} bg={"black"}>
       <VideoView
         style={{
           width: "100%",
           height: "100%",
-          opacity: isVisible ? 0.6 : 0,
-          display: isVisible ? "flex" : "none",
+          opacity: isVideoVisible ? 0.6 : 0,
+          display: isVideoVisible ? "flex" : "none",
         }}
         player={player}
         contentFit="cover"
@@ -93,13 +132,32 @@ const VideoPlayerCustom = (props: any, ref: React.Ref<VideoPlayerRef>) => {
           animation={"lazy"}
           position="absolute"
           zIndex={999}
-          top={45}
-          right={0}
+          top={50}
+          right={40}
           flexDirection="row"
-          justifyContent="space-between"
+          justifyContent="center"
           alignItems="center"
         >
-          <CircularTimer
+          <XStack justifyContent="center" alignItems="center" gap={10}>
+            <Text
+              width={150}
+              fontSize={40}
+              ml={10}
+              textAlign="center"
+              fontWeight="bold"
+              color="$color"
+            >
+              {formatTime(timerCurrentSecond)}
+            </Text>
+            <Animated.View style={{ opacity: animatedOpacity }}>
+              <Circle
+                size={30}
+                color={currentConfig.endColor as any}
+                fill={currentConfig.endColor}
+              />
+            </Animated.View>
+          </XStack>
+          {/* <CircularTimer
             size={200}
             startColor={currentConfig.startColor}
             endColor={currentConfig.endColor}
@@ -115,7 +173,7 @@ const VideoPlayerCustom = (props: any, ref: React.Ref<VideoPlayerRef>) => {
             disabledChange={true}
             workWithContext={true}
             initialSeconds={timerCurrentSecond}
-          />
+          /> */}
         </Stack>
       )}
     </Stack>
