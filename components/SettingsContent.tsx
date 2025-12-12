@@ -6,6 +6,7 @@ import TimerOptionsForm from "./TimerOptionsForm";
 import { TimerOption, useTimerContext } from "contexts/TimerContext";
 import { useThemeMode } from "contexts/ThemeContext";
 import {
+  Clock,
   Moon,
   SunDim,
   SunMoon,
@@ -17,6 +18,7 @@ import {
 import { ShadowProps } from "constants/ShadowProps";
 import { useUserPreferences } from "contexts/UserPreferencesContext";
 import MediaPreferences from "./MediaPreferences";
+import { clearAllData } from "utils/AsyncStorageUtils";
 
 const SettingsContent = () => {
   const params = useLocalSearchParams();
@@ -33,6 +35,8 @@ const SettingsContent = () => {
     setVideoEnabled,
     videoPreference,
     setVideoPreference,
+    isVideoHorizontal,
+    setIsVideoHorizontal,
     soundEffectEnabled,
     setSoundEffectEnabled,
     soundEffectPreference,
@@ -84,6 +88,10 @@ const SettingsContent = () => {
     }
   };
 
+  const restoreDefaults = async () => {
+    await clearAllData();
+  };
+
   const themeText =
     colorSchemeState === "light"
       ? "Light"
@@ -119,6 +127,8 @@ const SettingsContent = () => {
           height={"90%"}
           width={"95%"}
           header="Timer Options"
+          triggerIcon={<Clock size={25} />}
+          headerIcon={<Clock size={25} />}
           buttons={[{ label: "Done", onPress() {}, bg: "$cardBg" }]}
           children={
             <TimerOptionsForm
@@ -236,9 +246,27 @@ const SettingsContent = () => {
               musicPreference={musicPreference}
               setMusicPreference={setMusicPreference}
               colorScheme={effectiveColorScheme}
+              isVideoHorizontal={isVideoHorizontal}
+              setIsVideoHorizontal={setIsVideoHorizontal}
             />
           }
         />
+        <XStack
+          justify={"space-around"}
+          width={"90%"}
+          height={50}
+          alignItems="center"
+          {...(ShadowProps.medium as any)}
+          borderRadius={10}
+          bg={"$cardBg"}
+          onPress={restoreDefaults}
+          pressStyle={{
+            scale: 0.95,
+            opacity: 0.9,
+          }}
+        >
+          <Text fontSize={20}>Restore All Defaults</Text>
+        </XStack>
       </YStack>
     </View>
   );

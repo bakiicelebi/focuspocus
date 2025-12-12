@@ -22,10 +22,10 @@ const TimerOptionsForm = ({
   const [workTimeValue, setWorkTimeValue] = useState("10");
   const [breakTimeValue, setBreakTimeValue] = useState("10");
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isDeletingDialogOpen, setIsDeletingDialogOpen] = useState(false);
   const [deletingOption, setDeletingOption] = useState<TimerOption | null>(
     null
   );
-  const [isDeletingDialogOpen, setIsDeletingDialogOpen] = useState(false);
 
   const theme = useTheme();
   const bg = theme.background.val;
@@ -133,8 +133,12 @@ const TimerOptionsForm = ({
       breakTimeInMinutes: parseFloat(breakTimeValue),
       editable: true,
     };
+
     onSaveOption(newOption);
-    cancelEditMode();
+
+    if (isEditMode) {
+      cancelEditMode();
+    }
   };
 
   const renderItem = (item: TimerOption, index: number) => {

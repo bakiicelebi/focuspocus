@@ -43,6 +43,8 @@ type UserPreferencesContextValue = {
   setSoundEnabled: (enabled: boolean) => void;
   videoEnabled: boolean;
   setVideoEnabled: (enabled: boolean) => void;
+  isVideoHorizontal?: boolean;
+  setIsVideoHorizontal?: (isHorizontal: boolean) => void;
   videoPreference: VideoPreference;
   setVideoPreference: (preference: VideoPreference) => void;
   soundEffectEnabled: boolean;
@@ -65,6 +67,7 @@ const VIDEO_PREFERENCE_KEY = "videoPreference";
 const SOUND_EFFECT_PREFERENCE_KEY = "soundEffectPreference";
 const MUSIC_PREFERENCE_KEY = "musicPreference";
 const VIDEO_ENABLED_KEY = "videoEnabled";
+const VIDEO_IS_HORIZONTAL_KEY = "videoIsHorizontal";
 const SOUND_EFFECT_ENABLED_KEY = "soundEffectEnabled";
 const MUSIC_ENABLED_KEY = "musicEnabled";
 
@@ -143,6 +146,7 @@ export const UserPreferencesContextProvider = ({
   );
 
   const [videoEnabled, setVideoEnabled] = useState<boolean>(true);
+  const [isVideoHorizontal, setIsVideoHorizontal] = useState<boolean>(false);
   const [soundEffectEnabled, setSoundEffectEnabled] = useState<boolean>(true);
   const [musicEnabled, setMusicEnabled] = useState<boolean>(true);
 
@@ -200,6 +204,12 @@ export const UserPreferencesContextProvider = ({
     console.log("Saved Video Enabled Preference:", enabled);
   };
 
+  const setIsVideoHorizontalWrapper = (isHorizontal: boolean) => {
+    setIsVideoHorizontal(isHorizontal);
+    saveData(VIDEO_IS_HORIZONTAL_KEY, isHorizontal?.toString());
+    console.log("Saved Video Is Horizontal Preference:", isHorizontal);
+  };
+
   const loadUserPreferences = async () => {
     // clearAllData();
 
@@ -211,6 +221,7 @@ export const UserPreferencesContextProvider = ({
     );
     const savedMusicPreference = await getData(MUSIC_PREFERENCE_KEY);
     const savedVideoEnabled = await getData(VIDEO_ENABLED_KEY);
+    const savedVideoIsHorizontal = await getData(VIDEO_IS_HORIZONTAL_KEY);
     const savedSoundEffectEnabled = await getData(SOUND_EFFECT_ENABLED_KEY);
     const savedMusicEnabled = await getData(MUSIC_ENABLED_KEY);
 
@@ -220,6 +231,8 @@ export const UserPreferencesContextProvider = ({
       savedVideoPreference,
       savedMusicPreference,
       savedVideoEnabled,
+      savedVideoIsHorizontal,
+      savedSoundEffectEnabled,
       savedMusicEnabled,
     });
 
@@ -228,6 +241,14 @@ export const UserPreferencesContextProvider = ({
         setVideoEnabled(true);
       } else if (savedVideoEnabled === "false") {
         setVideoEnabled(false);
+      }
+    }
+
+    if (savedVideoIsHorizontal !== null) {
+      if (savedVideoIsHorizontal === "true") {
+        setIsVideoHorizontal(true);
+      } else if (savedVideoIsHorizontal === "false") {
+        setIsVideoHorizontal(false);
       }
     }
 
@@ -300,6 +321,8 @@ export const UserPreferencesContextProvider = ({
         setMusicEnabled: setMusicEnabledWrapper,
         musicPreference,
         setMusicPreference: setMusicPreferenceWrapper,
+        isVideoHorizontal,
+        setIsVideoHorizontal: setIsVideoHorizontalWrapper,
       }}
     >
       {children}
