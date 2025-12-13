@@ -48,10 +48,12 @@ const TimerScreenContent = () => {
     isRepeatAvailable,
     setIsRepeatAvailable,
     resetTimer,
+    stopMedia: stopMediaFromAll,
+    setStopMedia: setStopMediaFromAll,
   } = useTimerContext();
 
   const theme = useTheme();
-  const { playVideo } = useMediaContext();
+  const { playMedia, stopMedia } = useMediaContext();
   const { loadOption, syncSelectedOption } = useTimerOptionLocalize();
 
   const [key, setKey] = React.useState(1);
@@ -66,6 +68,13 @@ const TimerScreenContent = () => {
       loadSelectedOption();
     }, 50);
   }, []);
+
+  useEffect(() => {
+    if (!stopMediaFromAll) {
+      stopMedia();
+      setStopMediaFromAll(true);
+    }
+  }, [stopMediaFromAll]);
 
   const loadSelectedOption = async () => {
     console.log("Loading selected option from storage...");
@@ -201,8 +210,6 @@ const TimerScreenContent = () => {
         </Stack>
       </XStack>
 
-      <Button onPress={playVideo}>Play Video</Button>
-
       <CircularTimer
         ref={timerRef}
         key={timerKey}
@@ -216,6 +223,13 @@ const TimerScreenContent = () => {
         onEnd={handleTimerEnd}
         onActiveChange={(isActive) => setIsTimerRunning(isActive)}
         onChange={handleTimeChange}
+        onTrigger={(started) => {
+          if (!started) {
+            playMedia();
+          } else {
+            stopMedia();
+          }
+        }}
       />
     </YStack>
   );

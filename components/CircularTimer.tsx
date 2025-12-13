@@ -38,6 +38,7 @@ export interface CircularTimerProps {
   isCenterTextHidden?: boolean;
   sliderTrackColor?: string;
   workWithContext?: boolean;
+  onTrigger?: (started: boolean) => void;
 }
 
 export interface CircularTimerRef {
@@ -69,6 +70,7 @@ const CircularTimer = (
     isCenterTextHidden = false,
     sliderTrackColor = "transparent",
     workWithContext = false,
+    onTrigger,
   }: CircularTimerProps,
   ref: React.Ref<CircularTimerRef>
 ) => {
@@ -222,7 +224,12 @@ const CircularTimer = (
           alignItems="center"
           justifyContent="center"
           gap={5}
-          onPress={() => toggleTimer()}
+          onPress={() => {
+            if (onTrigger) {
+              onTrigger(isActive);
+            }
+            toggleTimer();
+          }}
         >
           <Text
             fontSize={size * 0.12}

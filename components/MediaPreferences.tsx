@@ -88,10 +88,12 @@ const MediaPreferences = ({
           alignItems="center"
           justify={"center"}
           width={"100%"}
-          flex={1}
+          my={"$2"}
         >
           <Stack flexDirection="row" alignItems="center" gap={"$2"}>
-            <Label fontSize={16}>Horizontal Video</Label>
+            <Text color={"white"} fontSize={16}>
+              Horizontal Video
+            </Text>
             <RadioGroup.Item
               onPress={() => setIsVideoHorizontal(true)}
               value="horizontal"
@@ -102,7 +104,9 @@ const MediaPreferences = ({
           </Stack>
 
           <Stack flexDirection="row" alignItems="center" gap={"$2"}>
-            <Label fontSize={16}>Vertical Video</Label>
+            <Label color={"$color"} fontSize={16}>
+              Vertical Video
+            </Label>
             <RadioGroup.Item
               onPress={() => setIsVideoHorizontal(false)}
               value="vertical"

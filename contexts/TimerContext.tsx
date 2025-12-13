@@ -98,8 +98,8 @@ interface TimerContextType {
   resetTimer: () => void;
   timerCurrentSecond: number;
   setTimerCurrentSecond: (second: number) => void;
-  canVideoVisible: boolean;
-  setCanVideoVisible: (visible: boolean) => void;
+  stopMedia: boolean;
+  setStopMedia: (visible: boolean) => void;
 }
 
 export const fixedTimerOptions: TimerOption[] = [
@@ -169,7 +169,7 @@ export const TimerContextProvider = ({ children }: { children: ReactNode }) => {
   const [backgroundBehavior, setBackgroundBehavior] =
     useState<BackgroundBehavior>("PAUSE");
 
-  const [canVideoVisible, setCanVideoVisible] = useState<boolean>(true);
+  const [stopMedia, setStopMedia] = useState<boolean>(true);
 
   const { play } = usePlaySound({ src: "", loop: false });
 
@@ -317,7 +317,7 @@ export const TimerContextProvider = ({ children }: { children: ReactNode }) => {
         setTimeout(() => {
           timerRef.current?.toggle(false);
         }, 10);
-        setCanVideoVisible(false);
+        setStopMedia(false);
       }
     }
   };
@@ -434,8 +434,8 @@ export const TimerContextProvider = ({ children }: { children: ReactNode }) => {
         resetTimer,
         timerCurrentSecond,
         setTimerCurrentSecond,
-        canVideoVisible,
-        setCanVideoVisible,
+        stopMedia,
+        setStopMedia,
       }}
     >
       {children}

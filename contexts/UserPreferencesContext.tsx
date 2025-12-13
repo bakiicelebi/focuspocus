@@ -43,8 +43,8 @@ type UserPreferencesContextValue = {
   setSoundEnabled: (enabled: boolean) => void;
   videoEnabled: boolean;
   setVideoEnabled: (enabled: boolean) => void;
-  isVideoHorizontal?: boolean;
-  setIsVideoHorizontal?: (isHorizontal: boolean) => void;
+  isVideoHorizontal: boolean;
+  setIsVideoHorizontal: (isHorizontal: boolean) => void;
   videoPreference: VideoPreference;
   setVideoPreference: (preference: VideoPreference) => void;
   soundEffectEnabled: boolean;

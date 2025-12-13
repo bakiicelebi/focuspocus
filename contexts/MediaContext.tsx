@@ -5,6 +5,7 @@ import { AudioSource } from "expo-audio";
 import { usePlaySound } from "hooks/usePlaySound";
 import {
   FIREPLACE_SOUNDEFFECT_SRC,
+  HORIZONTAL_FIREPLACE_VIDEO_SRC,
   NOTIFICATION_SOUNDEFFECT_SRC,
   useUserPreferences,
   VERTICAL_FIREPLACE_VIDEO_SRC,
@@ -14,7 +15,8 @@ type MediaContextType = {
   videoSrc: VideoSource | null;
   isVideoVisible: boolean;
   playVideo: () => void;
-  hideVideo: () => void;
+  playMedia: () => void;
+  stopMedia: () => void;
   videoRef?: React.Ref<VideoPlayerRef>;
 };
 
@@ -23,10 +25,12 @@ const MediaContext = createContext<MediaContextType | null>(null);
 export const MediaProvider = ({ children }: { children: React.ReactNode }) => {
   const {
     videoPreference,
+    videoEnabled,
     musicPreference,
     musicEnabled,
     soundEffectEnabled,
     soundEffectPreference,
+    isVideoHorizontal,
   } = useUserPreferences();
 
   const [videoSrc, setVideoSrc] = useState<VideoSource | null>(
@@ -59,7 +63,9 @@ export const MediaProvider = ({ children }: { children: React.ReactNode }) => {
 
   const playVideo = () => {
     setVideoSrc(
-      videoPreference?.source
+      isVideoHorizontal
+        ? HORIZONTAL_FIREPLACE_VIDEO_SRC
+        : videoPreference?.source
         ? videoPreference?.source
         : VERTICAL_FIREPLACE_VIDEO_SRC
     );
@@ -67,19 +73,9 @@ export const MediaProvider = ({ children }: { children: React.ReactNode }) => {
     if (videoRef?.current) {
       videoRef.current.play();
     }
-    setTimeout(() => {
-      if (soundEffectEnabled) {
-        playSoundEffect();
-      }
-      if (musicEnabled) {
-        setTimeout(() => {
-          playMusic();
-        }, 500);
-      }
-    }, 1000);
   };
 
-  const hideVideo = () => {
+  const stopMedia = () => {
     setVideoIsVisible(false);
     setVideoSrc(null);
     if (videoRef?.current) {
@@ -107,9 +103,32 @@ export const MediaProvider = ({ children }: { children: React.ReactNode }) => {
     playMusicPlayer();
   };
 
+  const playMedia = () => {
+    if (videoEnabled) {
+      playVideo();
+    }
+    setTimeout(() => {
+      if (soundEffectEnabled) {
+        playSoundEffect();
+      }
+      if (musicEnabled) {
+        setTimeout(() => {
+          playMusic();
+        }, 500);
+      }
+    }, 1000);
+  };
+
   return (
     <MediaContext.Provider
-      value={{ videoSrc, isVideoVisible, playVideo, hideVideo, videoRef }}
+      value={{
+        videoSrc,
+        isVideoVisible,
+        playVideo,
+        playMedia,
+        stopMedia,
+        videoRef,
+      }}
     >
       {children}
     </MediaContext.Provider>

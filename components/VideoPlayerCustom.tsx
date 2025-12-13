@@ -9,12 +9,14 @@ import {
   useState,
 } from "react";
 
+import { useWindowDimensions, Animated, Easing } from "react-native";
+
 import { useMediaContext } from "contexts/MediaContext";
 import CircularTimer from "./CircularTimer";
 import { useTimerContext } from "contexts/TimerContext";
 import { formatTime } from "utils/TimeFormats";
 import { Circle, Dot } from "@tamagui/lucide-icons";
-import { Animated, Easing } from "react-native";
+import { useUserPreferences } from "contexts/UserPreferencesContext";
 
 export interface VideoPlayerRef {
   play: () => void;
@@ -22,7 +24,12 @@ export interface VideoPlayerRef {
 }
 
 const VideoPlayerCustom = (props: any, ref: React.Ref<VideoPlayerRef>) => {
-  const { videoSrc, isVideoVisible, playVideo, hideVideo } = useMediaContext();
+  const { videoSrc, isVideoVisible, stopMedia } = useMediaContext();
+  const { isVideoHorizontal } = useUserPreferences();
+
+  // 2. EKRAN BOYUTLARINI AL
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+
   const [videoStarted, setVideoStarted] = useState(false);
 
   const theme = useTheme();
@@ -30,8 +37,8 @@ const VideoPlayerCustom = (props: any, ref: React.Ref<VideoPlayerRef>) => {
     timerCurrentSecond,
     mode,
     timeLeft,
-    canVideoVisible,
-    setCanVideoVisible,
+    stopMedia: stopMediaContext,
+    setStopMedia: setStopMediaContext,
   } = useTimerContext();
 
   const breathAnim = useRef(new Animated.Value(0)).current;
@@ -46,11 +53,11 @@ const VideoPlayerCustom = (props: any, ref: React.Ref<VideoPlayerRef>) => {
   });
 
   useEffect(() => {
-    if (!canVideoVisible && isVideoVisible) {
-      setCanVideoVisible(true);
-      hideVideo();
+    if (!stopMediaContext && isVideoVisible) {
+      setStopMediaContext(true);
+      stopMedia();
     }
-  }, [canVideoVisible]);
+  }, [stopMediaContext]);
 
   useImperativeHandle(ref, () => ({
     play: () => {
@@ -62,6 +69,7 @@ const VideoPlayerCustom = (props: any, ref: React.Ref<VideoPlayerRef>) => {
     },
   }));
 
+  // ... Animation useEffect kodların aynı kalsın ...
   useEffect(() => {
     if (videoStarted) {
       Animated.loop(
@@ -93,6 +101,7 @@ const VideoPlayerCustom = (props: any, ref: React.Ref<VideoPlayerRef>) => {
     outputRange: [0.4, 1],
   });
 
+  // ... Renk konfigürasyonun aynı kalsın ...
   const currentConfig = {
     startColor:
       theme[`timerOnVideo${mode === "work" ? "Work" : "Break"}StartColor`].val,
@@ -110,7 +119,33 @@ const VideoPlayerCustom = (props: any, ref: React.Ref<VideoPlayerRef>) => {
   };
 
   return (
-    <Stack onPress={() => hideVideo()} bg={"black"}>
+    <Stack
+      onPress={() => {
+        stopMedia();
+      }}
+      bg={"black"}
+      {...(isVideoHorizontal
+        ? {
+            position: "absolute",
+            top: 0,
+            left: 0,
+            zIndex: 9999,
+            width: windowHeight,
+            height: windowWidth,
+            rotate: "90deg",
+            y: (windowHeight - windowWidth) / 2,
+            x: -((windowHeight - windowWidth) / 2),
+          }
+        : {
+            width: "100%",
+            height: "100%",
+            position: "relative",
+            rotate: "0deg",
+            x: 0,
+            y: 0,
+            zIndex: 1,
+          })}
+    >
       <VideoView
         style={{
           width: "100%",
@@ -120,7 +155,7 @@ const VideoPlayerCustom = (props: any, ref: React.Ref<VideoPlayerRef>) => {
         }}
         player={player}
         contentFit="cover"
-        fullscreenOptions={{ enable: true, autoExitOnRotate: true }}
+        fullscreenOptions={{ enable: false }}
         allowsPictureInPicture={false}
         nativeControls={false}
         onFirstFrameRender={() => setVideoStarted(true)}
@@ -138,6 +173,7 @@ const VideoPlayerCustom = (props: any, ref: React.Ref<VideoPlayerRef>) => {
           justifyContent="center"
           alignItems="center"
         >
+          {/* İçeriklerin aynı... */}
           <XStack justifyContent="center" alignItems="center" gap={10}>
             <Text
               width={150}
@@ -157,23 +193,6 @@ const VideoPlayerCustom = (props: any, ref: React.Ref<VideoPlayerRef>) => {
               />
             </Animated.View>
           </XStack>
-          {/* <CircularTimer
-            size={200}
-            startColor={currentConfig.startColor}
-            endColor={currentConfig.endColor}
-            activeColor={currentConfig.activeColor}
-            inactiveColor={currentConfig.inactiveColor}
-            thumbColor={currentConfig.thumbColor}
-            maxSeconds={timeLeft}
-            backgroundColor={"transparent"}
-            sliderTrackColor={currentConfig.sliderTrackColor}
-            outline={false}
-            isButtonHidden={true}
-            isCenterTextHidden={true}
-            disabledChange={true}
-            workWithContext={true}
-            initialSeconds={timerCurrentSecond}
-          /> */}
         </Stack>
       )}
     </Stack>

@@ -19,6 +19,7 @@ import { ShadowProps } from "constants/ShadowProps";
 import { useUserPreferences } from "contexts/UserPreferencesContext";
 import MediaPreferences from "./MediaPreferences";
 import { clearAllData } from "utils/AsyncStorageUtils";
+import OutsidePressHandler from "./Menus/OutsidePressHelper";
 
 const SettingsContent = () => {
   const params = useLocalSearchParams();
@@ -50,6 +51,11 @@ const SettingsContent = () => {
   const [colorSchemeState, setColorSchemeState] = useState<
     "light" | "dark" | "default"
   >(colorScheme);
+
+  const [mediaPreferenceDialogOpen, setMediaPreferenceDialogOpen] =
+    useState(false);
+
+  const [isRestoringModalOpen, setIsRestoringModalOpen] = useState(false);
 
   const keyRef = useRef(0);
   const timerOptionsDialogRef = useRef<CustomDialogRef>(null);
@@ -216,7 +222,8 @@ const SettingsContent = () => {
           </Button>
         </XStack>
         <CustomDialog
-          ref={timerOptionsDialogRef}
+          open={mediaPreferenceDialogOpen}
+          onOpenChange={setMediaPreferenceDialogOpen}
           triggerHeader="Media Preferences"
           headerFontSize={25}
           triggerProps={{
@@ -251,22 +258,31 @@ const SettingsContent = () => {
             />
           }
         />
-        <XStack
-          justify={"space-around"}
-          width={"90%"}
-          height={50}
-          alignItems="center"
-          {...(ShadowProps.medium as any)}
-          borderRadius={10}
-          bg={"$cardBg"}
-          onPress={restoreDefaults}
-          pressStyle={{
-            scale: 0.95,
-            opacity: 0.9,
-          }}
+
+        <OutsidePressHandler
+          zIndex={4000}
+          disabled={!isRestoringModalOpen}
+          onPressOutside={() => setIsRestoringModalOpen(false)}
+          backgroundColor="rgba(0,0,0,0.6)"
         >
-          <Text fontSize={20}>Restore All Defaults</Text>
-        </XStack>
+          <CustomDialog
+            open={isRestoringModalOpen}
+            onOpenChange={setIsRestoringModalOpen}
+            onPress={() => restoreDefaults()}
+            triggerProps={{
+              fontSize: 20,
+              width: "90%",
+              ...(ShadowProps.medium as any),
+              borderRadius: 10,
+              height: 50,
+              bg: "$cardBg",
+            }}
+            type="error"
+            header="Restore Defaults"
+            width={"75%"}
+            description={`Are you sure you want to restore all settings to their default values? You can see the changes after restarting the app.`}
+          />
+        </OutsidePressHandler>
       </YStack>
     </View>
   );
