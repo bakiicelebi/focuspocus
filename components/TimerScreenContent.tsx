@@ -43,6 +43,8 @@ const TimerScreenContent = () => {
     timeLeft,
     setTimeLeft,
     handleTimerEnd,
+    onManualTimerStarted,
+    onManualTimerEnd,
     timerRef,
     isTimerRunning,
     isRepeatAvailable,
@@ -223,11 +225,13 @@ const TimerScreenContent = () => {
         onEnd={handleTimerEnd}
         onActiveChange={(isActive) => setIsTimerRunning(isActive)}
         onChange={handleTimeChange}
-        onTrigger={(started) => {
+        onTrigger={(started, seconds) => {
           if (!started) {
             playMedia();
+            onManualTimerStarted(seconds);
           } else {
             stopMedia();
+            onManualTimerEnd(seconds);
           }
         }}
       />

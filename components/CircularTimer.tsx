@@ -38,7 +38,7 @@ export interface CircularTimerProps {
   isCenterTextHidden?: boolean;
   sliderTrackColor?: string;
   workWithContext?: boolean;
-  onTrigger?: (started: boolean) => void;
+  onTrigger?: (started: boolean, seconds?: number) => void;
 }
 
 export interface CircularTimerRef {
@@ -88,9 +88,6 @@ const CircularTimer = (
   const [totalSeconds, setTotalSeconds] = useState(calculateInitialValue); // Pass reference or call it, both work here since it's pure now
   const [isActive, setIsActive] = useState(false);
 
-  useEffect(() => {
-    setTimerCurrentSecond(totalSeconds);
-  }, []);
 
   const breathAnim = useRef(new Animated.Value(0)).current;
 
@@ -226,7 +223,7 @@ const CircularTimer = (
           gap={5}
           onPress={() => {
             if (onTrigger) {
-              onTrigger(isActive);
+              onTrigger(isActive, totalSeconds);
             }
             toggleTimer();
           }}

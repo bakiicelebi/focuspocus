@@ -16,6 +16,7 @@ import { Vibration } from "react-native";
 import { triggerVibrationPattern } from "utils/Vibrations";
 import { usePlaySound } from "hooks/usePlaySound";
 import { useMediaContext } from "./MediaContext";
+import { createTimerSessionId } from "utils/TimerDataUtils";
 
 const ss = `
    {
@@ -90,6 +91,8 @@ interface TimerContextType {
   timeLeft: number;
   setTimeLeft: (seconds: number) => void;
   handleTimerEnd: () => void;
+  onManualTimerStarted: (seconds?: number) => void;
+  onManualTimerEnd: (seconds?: number) => void;
   timerRef: React.RefObject<CircularTimerRef | null>;
   backgroundBehavior: BackgroundBehavior;
   setBackgroundBehavior: (behavior: BackgroundBehavior) => void;
@@ -151,6 +154,9 @@ const TIMER_OPTIONS_STORAGE_KEY = "timer_options";
 export const TimerContextProvider = ({ children }: { children: ReactNode }) => {
   const { appState } = useAppStateContext();
   const { vibrationsEnabled, soundEnabled } = useUserPreferences();
+
+  /** TIMER SESSION */
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
   const [mode, setMode] = useState<TimerMode>("work");
   const [selectedOption, setSelectedOption] = useState<TimerOption | null>(
@@ -223,7 +229,11 @@ export const TimerContextProvider = ({ children }: { children: ReactNode }) => {
             optionKey: selectedOption?.key,
             timestamp: now,
             wasRunning: true,
+            backgroundBehavior,
           };
+
+          console.log("Timer durumu kaydediliyor:", stateToSave);
+
           await saveData(TIMER_STORAGE_KEY, JSON.stringify(stateToSave));
 
           if (backgroundBehavior === "PAUSE") {
@@ -321,6 +331,17 @@ export const TimerContextProvider = ({ children }: { children: ReactNode }) => {
       }
     }
   };
+
+  const onManualTimerStarted = (seconds?: number) => {
+    setCurrentSessionId(createTimerSessionId());
+    console.log(
+      "Manual timer started with seconds:",
+      seconds,
+      currentSessionId
+    );
+  };
+
+  const onManualTimerEnd = (seconds?: number) => {};
 
   const resetTimer = () => {
     setIsTimerRunning(false);
@@ -426,6 +447,8 @@ export const TimerContextProvider = ({ children }: { children: ReactNode }) => {
         timeLeft,
         setTimeLeft,
         handleTimerEnd,
+        onManualTimerStarted,
+        onManualTimerEnd,
         backgroundBehavior,
         setBackgroundBehavior,
         timerRef,
