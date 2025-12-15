@@ -14,6 +14,8 @@ import {
 type MediaContextType = {
   videoSrc: VideoSource | null;
   isVideoVisible: boolean;
+  isMediaPlaying: boolean;
+  setIsMediaPlaying: React.Dispatch<React.SetStateAction<boolean>>;
   playVideo: () => void;
   playMedia: () => void;
   stopMedia: () => void;
@@ -37,6 +39,7 @@ export const MediaProvider = ({ children }: { children: React.ReactNode }) => {
     require("assets/videos/fireplace_vertical.mp4")
   );
   const [isVideoVisible, setVideoIsVisible] = useState(false);
+  const [isMediaPlaying, setIsMediaPlaying] = useState(false);
 
   // --- SOUND EFFECT PLAYER ---
   const {
@@ -72,11 +75,13 @@ export const MediaProvider = ({ children }: { children: React.ReactNode }) => {
     setVideoIsVisible(true);
     if (videoRef?.current) {
       videoRef.current.play();
+      setIsMediaPlaying(true);
     }
   };
 
   const stopMedia = () => {
     setVideoIsVisible(false);
+    setIsMediaPlaying(false);
     setVideoSrc(null);
     if (videoRef?.current) {
       videoRef.current.pause();
@@ -92,6 +97,7 @@ export const MediaProvider = ({ children }: { children: React.ReactNode }) => {
         : FIREPLACE_SOUNDEFFECT_SRC
     );
     playEffect();
+    setIsMediaPlaying(true);
   };
 
   const playMusic = () => {
@@ -101,18 +107,26 @@ export const MediaProvider = ({ children }: { children: React.ReactNode }) => {
         : FIREPLACE_SOUNDEFFECT_SRC
     );
     playMusicPlayer();
+    setIsMediaPlaying(true);
   };
 
   const playMedia = () => {
+    if (isMediaPlaying) {
+      return;
+    }
+
     if (videoEnabled) {
+      console.log("Playing video...");
       playVideo();
     }
     setTimeout(() => {
       if (soundEffectEnabled) {
+        console.log("Playing sound effect...");
         playSoundEffect();
       }
       if (musicEnabled) {
         setTimeout(() => {
+          console.log("Playing music...");
           playMusic();
         }, 500);
       }
@@ -122,6 +136,8 @@ export const MediaProvider = ({ children }: { children: React.ReactNode }) => {
   return (
     <MediaContext.Provider
       value={{
+        isMediaPlaying,
+        setIsMediaPlaying,
         videoSrc,
         isVideoVisible,
         playVideo,

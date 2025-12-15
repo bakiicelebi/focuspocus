@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { Button, XStack, YStack, Stack, useTheme } from "tamagui";
+import { Button, XStack, YStack, Stack, useTheme, Text } from "tamagui";
 import CircularTimer, { CircularTimerProps } from "./CircularTimer";
 import CustomDropDown, {
   CustomDropDownRef,
@@ -9,11 +9,13 @@ import {
   TimerOption,
   addNewKey,
 } from "../contexts/TimerContext";
-import { Repeat, Undo } from "@tamagui/lucide-icons";
+import { Pause, Play, Repeat, Undo } from "@tamagui/lucide-icons";
 import { router } from "expo-router";
 import { ShadowProps } from "constants/ShadowProps";
 import { useMediaContext } from "contexts/MediaContext";
 import useTimerOptionLocalize from "hooks/useTimerOptionLocalize";
+import { useUserPreferences } from "contexts/UserPreferencesContext";
+import CustomDialog from "./CustomDialog";
 
 const timerStyle: Record<"work" | "break", CircularTimerProps> = {
   work: {
@@ -34,6 +36,8 @@ const timerStyle: Record<"work" | "break", CircularTimerProps> = {
 
 const TimerScreenContent = () => {
   const {
+    notifyOnFinish,
+    setNotifyOnFinish,
     mode,
     setMode,
     selectedOption,
@@ -55,10 +59,12 @@ const TimerScreenContent = () => {
   } = useTimerContext();
 
   const theme = useTheme();
-  const { playMedia, stopMedia } = useMediaContext();
+  const { playMedia, stopMedia, isMediaPlaying, setIsMediaPlaying } =
+    useMediaContext();
   const { loadOption, syncSelectedOption } = useTimerOptionLocalize();
 
   const [key, setKey] = React.useState(1);
+  const [notifyDialogOpen, setNotifyDialogOpen] = React.useState(false);
 
   const dropdownRef = useRef<CustomDropDownRef>(null);
 
@@ -77,6 +83,14 @@ const TimerScreenContent = () => {
       setStopMediaFromAll(true);
     }
   }, [stopMediaFromAll]);
+
+  useEffect(() => {
+    if (notifyOnFinish) {
+      setNotifyDialogOpen(true);
+      console.log("Notifications on finish are enabled.");
+      setNotifyOnFinish(false);
+    }
+  }, [notifyOnFinish]);
 
   const loadSelectedOption = async () => {
     console.log("Loading selected option from storage...");
@@ -142,6 +156,7 @@ const TimerScreenContent = () => {
       bg="$background"
     >
       <CustomDropDown
+        disabled={isTimerRunning}
         ref={dropdownRef}
         selectedItem={selectedOption}
         items={timerOptions}
@@ -160,7 +175,7 @@ const TimerScreenContent = () => {
         deselectable={false}
       />
 
-      <XStack alignItems="center" gap="$4">
+      <XStack alignItems="center" mb={"$5"} gap="$4">
         <Button
           onPress={() => setMode("work")}
           flex={1}
@@ -202,6 +217,19 @@ const TimerScreenContent = () => {
             size={30}
           />
         </Stack>
+        <Stack
+          position="absolute"
+          bottom={-60}
+          left={"50%"}
+          style={{ transform: [{ translateX: -15 }] }}
+          zIndex={10}
+        >
+          {isMediaPlaying ? (
+            <Pause color={"lightgray"} onPress={stopMedia} size={30} />
+          ) : (
+            <Play color={"lightgray"} onPress={playMedia} size={30} />
+          )}
+        </Stack>
         <Stack position="absolute" bottom={-60} left={10} zIndex={10}>
           <Undo
             disabled={isTimerRunning}
@@ -235,7 +263,69 @@ const TimerScreenContent = () => {
           }
         }}
       />
+      <CustomDialog
+        open={notifyDialogOpen}
+        onOpenChange={setNotifyDialogOpen}
+        width={"80%"}
+        height={"auto"}
+        trigger={false}
+        header="Brief"
+        buttons={[{ label: "OK", onPress: () => setNotifyDialogOpen(false) }]}
+        children={
+          <YStack gap="$4" padding="$4">
+            <XStack
+              width={"100%"}
+              alignItems="center"
+              justify={"space-between"}
+            >
+              <Text fontSize={18} fontWeight="600">
+                Working Time
+              </Text>
+              <Text fontSize={18} fontWeight="300">
+                {selectedOption.workTimeInMinutes?.toFixed(2)} minutes
+              </Text>
+            </XStack>
+            <XStack
+              width={"100%"}
+              alignItems="center"
+              justify={"space-between"}
+            >
+              <Text fontSize={18} fontWeight="600">
+                Break Time
+              </Text>
+              <Text fontSize={18} fontWeight="300">
+                {selectedOption.workTimeInMinutes?.toFixed(2)} minutes
+              </Text>
+            </XStack>
+            <XStack
+              width={"100%"}
+              alignItems="center"
+              justify={"space-between"}
+            >
+              <Text fontSize={18} fontWeight="600">
+                Repeated Count
+              </Text>
+              <Text fontSize={18} fontWeight="300">
+                {isRepeatAvailable ? "Infinite" : "Once"}
+              </Text>
+            </XStack>
+            <XStack
+              width={"100%"}
+              alignItems="center"
+              justify={"space-between"}
+            >
+              <Text fontSize={18} fontWeight="600">
+                Distracted Count
+              </Text>
+              <Text fontSize={18} fontWeight="300">
+                3
+              </Text>
+            </XStack>
+          </YStack>
+        }
+      />
     </YStack>
   );
 };
+
 export default TimerScreenContent;

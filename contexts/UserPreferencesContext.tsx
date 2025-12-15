@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 import { clearAllData, getData, saveData } from "utils/AsyncStorageUtils";
+import { BackgroundBehavior } from "./TimerContext";
 
 export const VERTICAL_FIREPLACE_VIDEO_SRC = require("assets/videos/fireplace_vertical.mp4");
 export const HORIZONTAL_FIREPLACE_VIDEO_SRC = require("assets/videos/fireplace_horizontal.mp4");
@@ -37,6 +38,8 @@ export interface MusicPreference {
 }
 
 type UserPreferencesContextValue = {
+  backgroundBehavior: BackgroundBehavior;
+  setBackgroundBehavior: (behavior: BackgroundBehavior) => void;
   vibrationsEnabled: boolean;
   setVibrationsEnabled: (enabled: boolean) => void;
   soundEnabled: boolean;
@@ -61,6 +64,7 @@ const UserPreferencesContext = createContext<
   UserPreferencesContextValue | undefined
 >(undefined);
 
+const BACKGROUND_BEHAVIOR_KEY = "backgroundBehavior";
 const VIBRATIONS_KEY = "vibrationsEnabled";
 const SOUND_KEY = "soundEnabled";
 const VIDEO_PREFERENCE_KEY = "videoPreference";
@@ -134,6 +138,8 @@ export const UserPreferencesContextProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
+  const [backgroundBehavior, setBackgroundBehavior] =
+    useState<BackgroundBehavior>("PAUSE");
   const [vibrationsEnabled, setVibrationsEnabled] = useState<boolean>(true);
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
   const [videoPreference, setVideoPreference] = useState<VideoPreference>(
@@ -153,6 +159,12 @@ export const UserPreferencesContextProvider = ({
   useEffect(() => {
     loadUserPreferences();
   }, []);
+
+  const setBackgroundBehaviorWrapper = (behavior: BackgroundBehavior) => {
+    setBackgroundBehavior(behavior);
+    saveData(BACKGROUND_BEHAVIOR_KEY, behavior);
+    console.log("Saved Background Behavior Preference:", behavior);
+  };
 
   const setVibrationsEnabledWrapper = (enabled: boolean) => {
     setVibrationsEnabled(enabled);
@@ -213,6 +225,7 @@ export const UserPreferencesContextProvider = ({
   const loadUserPreferences = async () => {
     // clearAllData();
 
+    const savedBackgroundBehavior = await getData(BACKGROUND_BEHAVIOR_KEY);
     const savedVibrations = await getData(VIBRATIONS_KEY);
     const savedSound = await getData(SOUND_KEY);
     const savedVideoPreference = await getData(VIDEO_PREFERENCE_KEY);
@@ -226,6 +239,7 @@ export const UserPreferencesContextProvider = ({
     const savedMusicEnabled = await getData(MUSIC_ENABLED_KEY);
 
     console.log("Loaded User Preferences:", {
+      savedBackgroundBehavior,
       savedVibrations,
       savedSound,
       savedVideoPreference,
@@ -235,6 +249,10 @@ export const UserPreferencesContextProvider = ({
       savedSoundEffectEnabled,
       savedMusicEnabled,
     });
+
+    if (savedBackgroundBehavior) {
+      setBackgroundBehavior(savedBackgroundBehavior as BackgroundBehavior);
+    }
 
     if (savedVideoEnabled !== null) {
       if (savedVideoEnabled === "true") {
@@ -305,6 +323,8 @@ export const UserPreferencesContextProvider = ({
   return (
     <UserPreferencesContext.Provider
       value={{
+        backgroundBehavior,
+        setBackgroundBehavior: setBackgroundBehaviorWrapper,
         vibrationsEnabled,
         setVibrationsEnabled: setVibrationsEnabledWrapper,
         soundEnabled,

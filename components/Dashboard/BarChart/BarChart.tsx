@@ -3,59 +3,14 @@ import { BarChart as BarGraph } from "react-native-gifted-charts";
 import { Stack, Text } from "tamagui";
 
 const BarChart = () => {
-  // const data = [
-  //   {
-  //     value: 250,
-  //     frontColor: "#006DFF",
-  //     gradientColor: "#009FFF",
-  //     spacing: 6,
-  //     label: t("jan"),
-  //   },
-  //   { value: 240, frontColor: "#3BE9DE", gradientColor: "#93FCF8" },
-
-  //   {
-  //     value: 350,
-  //     frontColor: "#006DFF",
-  //     gradientColor: "#009FFF",
-  //     spacing: 6,
-  //     label: t("feb"),
-  //   },
-  //   { value: 300, frontColor: "#3BE9DE", gradientColor: "#93FCF8" },
-
-  //   {
-  //     value: 450,
-  //     frontColor: "#006DFF",
-  //     gradientColor: "#009FFF",
-  //     spacing: 6,
-  //     label: t("mar"),
-  //   },
-  //   { value: 400, frontColor: "#3BE9DE", gradientColor: "#93FCF8" },
-
-  //   {
-  //     value: 520,
-  //     frontColor: "#006DFF",
-  //     gradientColor: "#009FFF",
-  //     spacing: 6,
-  //     label: t("apr"),
-  //   },
-  //   { value: 490, frontColor: "#3BE9DE", gradientColor: "#93FCF8" },
-
-  //   {
-  //     value: 300,
-  //     frontColor: "#006DFF",
-  //     gradientColor: "#009FFF",
-  //     spacing: 6,
-  //     label: t("may"),
-  //   },
-  //   { value: 280, frontColor: "#3BE9DE", gradientColor: "#93FCF8" },
-  // ];
-
   const data = [
-    { value: 150, label: "Jan" },
-    { value: 200, label: "Feb" },
-    { value: 250, label: "Mar" },
-    { value: 100, label: "Apr" },
-    { value: 250, label: "May" },
+    { value: 150, label: "Mon" },
+    { value: 200, label: "Tue" },
+    { value: 250, label: "Wed" },
+    { value: 100, label: "Thu" },
+    { value: 250, label: "Fri" },
+    { value: 300, label: "Sat" },
+    { value: 400, label: "Sun" },
   ];
 
   return (

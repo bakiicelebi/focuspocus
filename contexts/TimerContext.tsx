@@ -16,52 +16,11 @@ import { Vibration } from "react-native";
 import { triggerVibrationPattern } from "utils/Vibrations";
 import { usePlaySound } from "hooks/usePlaySound";
 import { useMediaContext } from "./MediaContext";
-import { createTimerSessionId } from "utils/TimerDataUtils";
-
-const ss = `
-   {
-    key: "custom1",
-    label: "Custom 1",
-    workTimeInMinutes: 45,
-    breakTimeInMinutes: 10,
-  },
-  {
-    key: "custom2",
-    label: "Custom 2",
-    workTimeInMinutes: 30,
-    breakTimeInMinutes: 15,
-  },
-  {
-    key: "custom3",
-    label: "Custom 3",
-    workTimeInMinutes: 20,
-    breakTimeInMinutes: 5,
-  },
-  {
-    key: "custom4",
-    label: "Custom 4",
-    workTimeInMinutes: 15,
-    breakTimeInMinutes: 10,
-  },
-  {
-    key: "custom5",
-    label: "Custom 5",
-    workTimeInMinutes: 10,
-    breakTimeInMinutes: 5,
-  },
-  {
-    key: "custom6",
-    label: "Custom 6",
-    workTimeInMinutes: 5,
-    breakTimeInMinutes: 2,
-  },
-  {
-    key: "custom7",
-    label: "Custom 7",
-    workTimeInMinutes: 3,
-    breakTimeInMinutes: 1,
-  },
-   `;
+import {
+  computeRecoveredState,
+  createTimerSessionId,
+} from "utils/TimerDataUtils";
+import { StoppedType, TimerData } from "constants/Types/TimerDataTypes";
 
 export type TimerMode = "work" | "break";
 export type BackgroundBehavior = "PAUSE" | "CONTINUE";
@@ -78,6 +37,10 @@ export interface TimerOption {
 export type IconComponentType = React.ComponentType<IconProps>;
 
 interface TimerContextType {
+  notifyOnFinish: boolean;
+  setNotifyOnFinish: (notify: boolean) => void;
+  briefData: TimerData | null;
+  setBriefData: (data: TimerData | null) => void;
   mode: TimerMode;
   timerOptions: TimerOption[];
   setTimerOptions: (options: TimerOption[]) => void;
@@ -95,7 +58,6 @@ interface TimerContextType {
   onManualTimerEnd: (seconds?: number) => void;
   timerRef: React.RefObject<CircularTimerRef | null>;
   backgroundBehavior: BackgroundBehavior;
-  setBackgroundBehavior: (behavior: BackgroundBehavior) => void;
   isRepeatAvailable: boolean;
   setIsRepeatAvailable: (available: boolean) => void;
   resetTimer: () => void;
@@ -109,8 +71,8 @@ export const fixedTimerOptions: TimerOption[] = [
   {
     key: "testing",
     label: "Testing",
-    workTimeInMinutes: 1 / 10,
-    breakTimeInMinutes: 1 / 12,
+    workTimeInMinutes: 1 / 6,
+    breakTimeInMinutes: 1 / 10,
     editable: false,
   },
   {
@@ -153,13 +115,18 @@ const TIMER_OPTIONS_STORAGE_KEY = "timer_options";
 
 export const TimerContextProvider = ({ children }: { children: ReactNode }) => {
   const { appState } = useAppStateContext();
-  const { vibrationsEnabled, soundEnabled } = useUserPreferences();
+  const { vibrationsEnabled, soundEnabled, backgroundBehavior } =
+    useUserPreferences();
 
   /** TIMER SESSION */
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
+  const [notifyOnFinish, setNotifyOnFinish] = useState<boolean>(false);
+  const [distractedCount, setDistractedCount] = useState<number>(0);
+  const [repeatCount, setRepeatCount] = useState<number>(0);
+
   const [mode, setMode] = useState<TimerMode>("work");
-  const [selectedOption, setSelectedOption] = useState<TimerOption | null>(
+  const [selectedOption, setSelectedOption] = useState<TimerOption>(
     fixedTimerOptions[0]
   );
   const [timerOptions, setTimerOptions] =
@@ -168,12 +135,11 @@ export const TimerContextProvider = ({ children }: { children: ReactNode }) => {
   const [isRepeatAvailable, setIsRepeatAvailable] = useState<boolean>(false);
 
   const [timerCurrentSecond, setTimerCurrentSecond] = useState<number>(0);
+  const [briefData, setBriefData] = useState<TimerData | null>(null);
 
   const initialMaxTime = fixedTimerOptions[0].workTimeInMinutes * 60;
 
   const [timeLeft, setTimeLeft] = useState(initialMaxTime);
-  const [backgroundBehavior, setBackgroundBehavior] =
-    useState<BackgroundBehavior>("PAUSE");
 
   const [stopMedia, setStopMedia] = useState<boolean>(true);
 
@@ -188,6 +154,7 @@ export const TimerContextProvider = ({ children }: { children: ReactNode }) => {
     if (selectedOption) {
       if (selectedOption !== selectedOptionRef.current) {
         timerRef.current?.toggle(false);
+        setMode("work");
       }
       selectedOptionRef.current = selectedOption;
       const minutes =
@@ -207,6 +174,24 @@ export const TimerContextProvider = ({ children }: { children: ReactNode }) => {
       initialTimeLeftRef.current = timeLeft;
     }
   }, [isTimerRunning]);
+
+  useEffect(() => {
+    if (selectedOption) {
+      setRepeatCount(0);
+      setDistractedCount(0);
+      const currentOptionMinutes =
+        mode === "work"
+          ? selectedOption.workTimeInMinutes
+          : selectedOption.breakTimeInMinutes;
+      const currentOptionSeconds = Math.floor(currentOptionMinutes * 60);
+      if (
+        !(timerCurrentSecond <= 0) &&
+        timerCurrentSecond < currentOptionSeconds
+      ) {
+        finishTimerSession("uncompleted");
+      }
+    }
+  }, [selectedOption]);
 
   useEffect(() => {
     const handleAppStateChange = async () => {
@@ -230,7 +215,11 @@ export const TimerContextProvider = ({ children }: { children: ReactNode }) => {
             timestamp: now,
             wasRunning: true,
             backgroundBehavior,
+            distractedCount,
+            repeatCount,
           };
+
+          finishTimerSession("background");
 
           console.log("Timer durumu kaydediliyor:", stateToSave);
 
@@ -248,41 +237,63 @@ export const TimerContextProvider = ({ children }: { children: ReactNode }) => {
         if (savedDataString) {
           const savedData = JSON.parse(savedDataString);
 
+          setDistractedCount(savedData.distractedCount || 0);
+          setRepeatCount(savedData.repeatCount || 0);
+
           if (savedData.wasRunning) {
             const now = Date.now();
 
             let recoveredTime = savedData.timeLeft;
 
             if (backgroundBehavior === "CONTINUE") {
-              const secondsPassedInBackground =
-                (now - savedData.timestamp) / 1000;
-              recoveredTime = Math.max(
-                0,
-                Math.floor(savedData.timeLeft - secondsPassedInBackground)
-              );
-              console.log(
-                `Arka planda ${secondsPassedInBackground} sn geçti. Yeni süre: ${recoveredTime}`
+              const secondsPassed = Math.floor(
+                (now - savedData.timestamp) / 1000
               );
 
-              if (timerRef?.current) {
-                setTimeout(() => {
-                  setIsTimerRunning(true);
-                  timerRef?.current?.toggle(true);
-                }, 10);
+              const {
+                mode: newMode,
+                remaining,
+                finished,
+              } = computeRecoveredState(
+                savedData.mode,
+                savedData.timeLeft,
+                secondsPassed,
+                selectedOption,
+                isRepeatAvailable
+              );
+
+              if (finished) {
+                setMode("break");
+                setTimeLeft(0);
+                setIsTimerRunning(false);
+                timerRef.current?.toggle(false);
+                return;
               }
+              console.log(newMode, remaining);
+              setMode(newMode as TimerMode);
+              setTimeLeft(remaining);
+
+              console.log(
+                `Arka planda ${secondsPassed} sn geçti → yeni mod: ${newMode}, süre: ${remaining}`
+              );
+
+              // continue
+              setTimeout(() => {
+                setIsTimerRunning(true);
+                timerRef?.current?.reset(remaining);
+                setTimeout(() => {
+                  timerRef?.current?.toggle(true);
+                }, 20);
+              }, 10);
             } else {
               console.log(
                 `Timer dondurulmuştu. Kaldığı yerden devam ediyor: ${recoveredTime}`
               );
-              if (timerRef?.current) {
-                setTimeout(() => {
-                  setIsTimerRunning(true);
-                  timerRef?.current?.toggle(true);
-                }, 10);
-              }
             }
 
             setTimeLeft(recoveredTime);
+            setRepeatCount(savedData.repeatCount || 0);
+            setDistractedCount(savedData.distractedCount || 0);
 
             if (recoveredTime <= 0) {
               handleTimerEnd();
@@ -320,6 +331,7 @@ export const TimerContextProvider = ({ children }: { children: ReactNode }) => {
         play();
       }
       if (isRepeatAvailable) {
+        setRepeatCount((count) => count + 1);
         setTimeout(() => {
           timerRef.current?.toggle(true);
         }, 10);
@@ -328,20 +340,66 @@ export const TimerContextProvider = ({ children }: { children: ReactNode }) => {
           timerRef.current?.toggle(false);
         }, 10);
         setStopMedia(false);
+        setRepeatCount(0);
       }
+      finishTimerSession("completed");
     }
   };
 
   const onManualTimerStarted = (seconds?: number) => {
-    setCurrentSessionId(createTimerSessionId());
-    console.log(
-      "Manual timer started with seconds:",
-      seconds,
-      currentSessionId
-    );
+    let sessionId = currentSessionId;
+    if (!currentSessionId) {
+      sessionId = createTimerSessionId();
+      setCurrentSessionId(sessionId);
+    }
+    console.log("Timer started manually with seconds:", seconds, sessionId);
   };
 
-  const onManualTimerEnd = (seconds?: number) => {};
+  const onManualTimerEnd = (seconds?: number) => {
+    setDistractedCount((count) => count + 1);
+    finishTimerSession("manual");
+  };
+
+  const finishTimerSession = async (stoppedType?: StoppedType) => {
+    const brief: TimerData = {
+      id: currentSessionId || createTimerSessionId(),
+      date: new Date().toISOString(),
+      mode,
+      currentTimerOption: selectedOption!,
+      stoppedType: stoppedType || "completed",
+      workSeconds: timeLeft,
+      backgroundBehavior: backgroundBehavior,
+      breakSeconds: 0,
+      repeatCount: repeatCount,
+      distractedCount: distractedCount,
+    };
+
+    setNotifyOnFinish(true);
+
+    if ("completed" === stoppedType) {
+      saveLocally(brief);
+      setRepeatCount(0);
+      setDistractedCount(0);
+      if (currentSessionId) {
+        setCurrentSessionId(null);
+      }
+    }
+  };
+
+  const saveLocally = async (data: TimerData) => {
+    try {
+      const existingDataString = await getData("local_timer_data");
+      let existingData: TimerData[] = [];
+      if (existingDataString) {
+        existingData = JSON.parse(existingDataString);
+      }
+      existingData.push(data);
+      await saveData("local_timer_data", JSON.stringify(existingData));
+      console.log("Timer data saved locally:", data.id);
+    } catch (error) {
+      console.log("Error saving timer data locally:", error);
+    }
+  };
 
   const resetTimer = () => {
     setIsTimerRunning(false);
@@ -353,6 +411,8 @@ export const TimerContextProvider = ({ children }: { children: ReactNode }) => {
     setTimeout(() => {
       timerRef.current?.reset(minutes);
     }, 10);
+
+    finishTimerSession("uncompleted");
   };
 
   const saveTimerOption = async (option: TimerOption) => {
@@ -434,8 +494,12 @@ export const TimerContextProvider = ({ children }: { children: ReactNode }) => {
   return (
     <TimerContext.Provider
       value={{
+        briefData,
+        setBriefData,
         mode,
         setMode,
+        notifyOnFinish,
+        setNotifyOnFinish,
         timerOptions,
         setTimerOptions,
         saveTimerOption,
@@ -450,7 +514,6 @@ export const TimerContextProvider = ({ children }: { children: ReactNode }) => {
         onManualTimerStarted,
         onManualTimerEnd,
         backgroundBehavior,
-        setBackgroundBehavior,
         timerRef,
         isRepeatAvailable,
         setIsRepeatAvailable,

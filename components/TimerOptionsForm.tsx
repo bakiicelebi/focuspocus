@@ -1,5 +1,9 @@
 import { View, Text, Stack, YStack, useTheme, XStack, Button } from "tamagui";
-import { addNewKey, TimerOption } from "../contexts/TimerContext";
+import {
+  addNewKey,
+  BackgroundBehavior,
+  TimerOption,
+} from "../contexts/TimerContext";
 import { FlashList } from "@shopify/flash-list";
 import TimerOptionCard from "./TimerOptionCard";
 import { ArrowDown, Minus, Plus } from "@tamagui/lucide-icons";
@@ -7,15 +11,20 @@ import React, { useState } from "react";
 import { FloatingLabelInputOnly } from "./FloatingLabelInputOnly";
 import CustomDialog from "./CustomDialog";
 import OutsidePressHandler from "./Menus/OutsidePressHelper";
+import CustomSwitch from "./CustomSwitch";
 
 const TimerOptionsForm = ({
   timerOptions,
   onDeleteOption,
   onSaveOption,
+  backgroundBehavior,
+  setBackgroundBehavior,
 }: {
   timerOptions: TimerOption[];
   onDeleteOption: (option: TimerOption) => void;
   onSaveOption: (option: TimerOption) => void;
+  backgroundBehavior: BackgroundBehavior;
+  setBackgroundBehavior: (behavior: BackgroundBehavior) => void;
 }) => {
   const [showArrow, setShowArrow] = useState(true);
   const [titleValue, setTitleValue] = useState("Custom");
@@ -257,7 +266,7 @@ const TimerOptionsForm = ({
           </YStack>
         </Stack>
 
-        <Stack borderRadius={10} bg="$backgroundOverlay" height={"60%"}>
+        <Stack borderRadius={10} bg="$backgroundOverlay" height={"50%"}>
           <Text m={6} textAlign="right">
             Total Options: {timerOptionsFiltered?.length}
           </Text>
@@ -283,6 +292,17 @@ const TimerOptionsForm = ({
             </YStack>
           )}
         </Stack>
+        <XStack alignItems="center" justify={"space-between"} gap={10} mt={10}>
+          <Text fontSize={16} fontWeight="600" mb={5}>
+            Continue Timer in Background
+          </Text>
+          <CustomSwitch
+            state={backgroundBehavior === "CONTINUE"}
+            setState={(state) =>
+              setBackgroundBehavior(state ? "CONTINUE" : "PAUSE")
+            }
+          />
+        </XStack>
       </Stack>
       <OutsidePressHandler
         zIndex={4000}

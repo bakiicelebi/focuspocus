@@ -4,16 +4,17 @@ import {
   TimerOption,
 } from "contexts/TimerContext";
 
-export type StoppedType = "manual" | "completed" | "background";
+export type StoppedType = "manual" | "completed" | "background" | "uncompleted";
 
 export interface TimerData {
   id: string;
-  date: string;
+  date: string; // ISO string
   mode: TimerMode;
   currentTimerOption: TimerOption;
   stoppedType: StoppedType;
-  elapsedSeconds: number;
-  completedCycles: number;
+  workSeconds: number;
+  breakSeconds: number;
+  repeatCount: number;
   backgroundBehavior: BackgroundBehavior;
   distractedCount: number;
 }

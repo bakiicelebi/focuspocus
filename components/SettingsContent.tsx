@@ -46,6 +46,8 @@ const SettingsContent = () => {
     setMusicEnabled,
     musicPreference,
     setMusicPreference,
+    backgroundBehavior,
+    setBackgroundBehavior,
   } = useUserPreferences();
 
   const [colorSchemeState, setColorSchemeState] = useState<
@@ -141,6 +143,8 @@ const SettingsContent = () => {
               timerOptions={timerOptions}
               onDeleteOption={handleDeleteTimerOption}
               onSaveOption={handleSaveTimerOption}
+              backgroundBehavior={backgroundBehavior}
+              setBackgroundBehavior={setBackgroundBehavior}
             />
           }
         />
@@ -278,9 +282,9 @@ const SettingsContent = () => {
               bg: "$cardBg",
             }}
             type="error"
-            header="Restore Defaults"
+            header="Restore Preferences"
             width={"75%"}
-            description={`Are you sure you want to restore all settings to their default values? You can see the changes after restarting the app.`}
+            description={`Are you sure you want to restore all preferences to their default values? You can see the changes after restarting the app.`}
           />
         </OutsidePressHandler>
       </YStack>
