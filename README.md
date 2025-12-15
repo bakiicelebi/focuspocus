@@ -309,4 +309,4 @@ Sorun yaşıyorsanız veya önerileriniz varsa, lütfen issue açın.
 
 ---
 
-**Made with ❤️ using React Native & Expo**
+**Made with using React Native & Expo**
